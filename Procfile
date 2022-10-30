@@ -1,1 +1,1 @@
-worker: npm i& SET NODE_ENV=PRODUCTION& node server.js
+worker: node server.js
