@@ -22,7 +22,7 @@ process.on('uncaughtException', (err) => {
     process.exit(1);
 });
 
-// MiddleWares handle error
+// middleWares handle error
 app.use(errorMiddleware);
 
 const URI = process.env.DB_CONNECTION;
