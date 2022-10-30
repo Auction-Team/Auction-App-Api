@@ -1,0 +1,28 @@
+
+POST http://localhost:5000/api/auth/activated HTTP/1.1
+content-type: application/json
+
+{
+    "code" : "test api"
+}
+
+# // Login user
+# POST http://localhost:5000/api/auth/login HTTP/1.1
+# content-type: application/json
+
+# {
+#     "email" : "longtam20016@gmail.com",
+#     "password": "password"
+# }
+
+# // Register user
+# POST http://localhost:5000/api/auth/register HTTP/1.1
+# content-type: application/json
+
+# {
+#     "firstName": "ho",
+#     "lastName": "phong",
+#     "fullName": "Hồ Hoài Phong",
+#     "email" : "longtam20016@gmail.com",
+#     "password": "password"
+# }
