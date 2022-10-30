@@ -3,6 +3,9 @@ const CustomError = require('../utils/custom-error');
 
 module.exports = (err, req, res, next) => {
     err.statusCode = err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
+
+    console.log('Error handling');
+    console.log('Chuẩn bị vào Mode DEVELOPMENT');
     if (process.env.NODE_ENV === 'DEVELOPMENT') {
         res.status(err.statusCode).json({
             success: false,
@@ -11,8 +14,9 @@ module.exports = (err, req, res, next) => {
             stack: err.stack,
         });
     }
-
+    console.log('Chuẩn bị vào Mode PRODUCTION');
     if (process.env.NODE_ENV === 'PRODUCTION') {
+        console.log('Vào if Mode PRODUCTION');
         let error = { ...err };
         error.message = err.message;
 
