@@ -10,6 +10,10 @@ const getUserByEmail = async (email) => {
     return await User.findOne({ email });
 };
 
+const getUserProfile = async (id) => {
+    return await User.findById(id).select('-password');
+};
+
 const comparePassword = async (password, passwordHash) => {
     return await bcrypt.compare(password, passwordHash);
 };
@@ -51,4 +55,5 @@ module.exports = {
     getUserByEmail,
     comparePassword,
     getUserByPasswordToken,
+    getUserProfile,
 };

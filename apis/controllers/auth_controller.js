@@ -16,15 +16,8 @@ const login = catchAsync(async (req, res, next) => {
         return next(
             new CustomError(httpStatus.BAD_REQUEST, 'Password not correct')
         );
-    const access_token = tokenService.generateAccessToken(user._id);
 
-    const refresh_token = tokenService.generateRefreshToken(user._id);
-
-    return res.status(httpStatus.OK).json({
-        success: true,
-        access_token,
-        refresh_token,
-    });
+    tokenService.sendToken(user._id, res);
 });
 
 // Register user
@@ -113,9 +106,51 @@ const resetPassword = catchAsync(async (req, res, next) => {
     });
 });
 
+const refreshToken = catchAsync((req, res, next) => {
+    const { refresh_token } = req.cookies;
+    if (!refresh_token)
+        return next(new CustomError(httpStatus.BAD_REQUEST, 'Please logging'));
+    tokenService.getAccessTokenByRefreshToken(refresh_token, res);
+});
+
+const logout = catchAsync((req, res, next) => {
+    res.cookie('refresh_token', null, {
+        expires: new Date(Date.now()),
+        httpOnly: true,
+    });
+
+    return res.status(httpStatus.OK).json({
+        success: true,
+        message: 'Logout successfully',
+    });
+});
+
+const profile = catchAsync(async (req, res, next) => {
+    const user = await userService.getUserProfile(req.user._id.toString());
+
+    if (!user)
+        return next(new CustomError(httpStatus.NOT_FOUND, 'User not exists'));
+
+    return res.status(httpStatus.OK).json({
+        success: true,
+        user,
+    });
+});
+
+const secret = (req, res, next) => {
+    return res.status(httpStatus.OK).json({
+        success: true,
+        message: 'Test passport',
+    });
+};
+
 module.exports = {
     login,
     register,
     forgotPassword,
     resetPassword,
+    secret,
+    refreshToken,
+    logout,
+    profile,
 };

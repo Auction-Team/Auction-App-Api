@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 const userSchema = new mongoose.Schema({
+    googleId: {
+        type: String,
+    },
     firstName: {
         type: String,
         required: true,
