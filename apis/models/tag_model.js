@@ -6,10 +6,10 @@ const tagSchema = new mongoose.Schema({
     labelEn: {
         type: String,
     },
-    // productId: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'Product',
-    // }
+    image:{
+        type: mongoose.Types.ObjectId,
+        require: false
+    }
 });
 
 module.exports = mongoose.model('Tag', tagSchema);
