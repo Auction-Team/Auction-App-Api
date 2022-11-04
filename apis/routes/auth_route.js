@@ -8,13 +8,33 @@ const passport = require('passport');
 
 const passportConfig = require('../middlewares/passport');
 
-router.post('/login', authController.login);
+const { authValidation } = require('../validations');
 
-router.post('/register', authController.register);
+const validate = require('../middlewares/validate');
 
-router.post('/forgot-password', authController.forgotPassword);
+router.post(
+    '/login',
+    validate(authValidation.loginSchema),
+    authController.login
+);
 
-router.put('/password/reset/:token', authController.resetPassword);
+router.post(
+    '/register',
+    validate(authValidation.registerSchema),
+    authController.register
+);
+
+router.post(
+    '/forgot-password',
+    validate(authValidation.forgotPasswordSchema),
+    authController.forgotPassword
+);
+
+router.put(
+    '/password/reset/:token',
+    validate(authValidation.activateTokenForgotPasswordSchema),
+    authController.resetPassword
+);
 
 router.get('/refresh/token', authController.refreshToken);
 
