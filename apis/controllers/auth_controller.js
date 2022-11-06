@@ -142,6 +142,22 @@ const profile = catchAsync(async (req, res, next) => {
     });
 });
 
+const changePassword = catchAsync(async (req, res, next) => {
+    const id = req.user.id;
+    const { oldPassword, newPassword } = req.body;
+    const user = await userService.getUserById(id);
+    const isMatchPassword = await bcrypt.compare(oldPassword, user.password);
+    if (isMatchPassword) {
+        const newPasswordBcrypt = await bcrypt.hash(newPassword, 10);
+        user.password = newPasswordBcrypt;
+        user.save();
+    }
+    return res.status(httpStatus.OK).json({
+        success: true,
+        message: 'Change password successfully',
+    });
+});
+
 const secret = (req, res, next) => {
     return res.status(httpStatus.OK).json({
         success: true,
@@ -158,4 +174,5 @@ module.exports = {
     refreshToken,
     logout,
     profile,
+    changePassword,
 };

@@ -250,6 +250,45 @@ router.get(
 
 /**
  * @swagger
+ * /api/auth/change/password:
+ *   put:
+ *     summary: Change password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *              oldPassword:
+ *                  type: string
+ *              newPassword:
+ *                  type: string
+ *              confirmNewPassword:
+ *                  type: string
+ *             examples:
+ *                  oldPassword: oldPassword
+ *                  newPassword: newPassword
+ *                  confirmNewPassword: confirmNewPassword
+ *     responses:
+ *       200:
+ *         description: Change password successfully
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal Server Error
+ *
+ */
+router.put(
+    '/change/password',
+    passport.authenticate('jwt', { session: false }),
+    validate(authValidation.changePasswordSchema),
+    authController.changePassword
+);
+
+/**
+ * @swagger
  * /api/auth/secret:
  *  get:
  *      security:

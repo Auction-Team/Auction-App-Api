@@ -17,6 +17,14 @@ const registerSchema = {
     }),
 };
 
+const changePasswordSchema = {
+    body: Joi.object().keys({
+        oldPassword: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')),
+        newPassword: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')),
+        confirmNewPassword: Joi.ref('newPassword'),
+    }),
+};
+
 const forgotPasswordSchema = {
     body: Joi.object().keys({
         email: Joi.string().required().email(),
@@ -35,4 +43,5 @@ module.exports = {
     registerSchema,
     forgotPasswordSchema,
     activateTokenForgotPasswordSchema,
+    changePasswordSchema,
 };
