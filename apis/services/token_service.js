@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const httpStatus = require('http-status');
 const CustomError = require('../utils/custom-error');
-const User = require('../models/user_model');
+const { Token, User } = require('../models');
 const generateResetPasswordToken = ({ email }) => {
     return jwt.sign({ email }, process.env.PASSPORT_JWT_RESET_PASSWORD, {
         expiresIn: '5m',
@@ -47,19 +47,38 @@ const getAccessTokenByRefreshToken = async (refreshToken, res) => {
     }
 };
 
-const sendToken = (id, res) => {
+const saveToken = async (userId, accessToken) => {
+    const tokenByUserId = await findTokenByUserId(userId);
+    if (tokenByUserId) await Token.deleteOne({ userId });
+    const token = new Token();
+    token.userId = userId;
+    token.accessToken = accessToken;
+    await token.save();
+};
+
+const findTokenByUserId = async (userId) => {
+    return await Token.findOne({ userId });
+};
+
+const deleteTokenOfUserByUserId = async (userId) => {
+    await Token.findOneAndDelete({ userId });
+};
+
+const sendToken = async (id, res) => {
     const access_token = generateAccessToken(id);
 
     const refresh_token = generateRefreshToken(id);
 
-    // Options for cookie
-    const options = {
+    saveToken(id, access_token);
+
+    // Options for cookie refresh token
+    const optionsRefreshToken = {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         httpOnly: true,
     };
 
     res.status(httpStatus.OK)
-        .cookie('refresh_token', refresh_token, options)
+        .cookie('refresh_token', refresh_token, optionsRefreshToken)
         .json({
             success: true,
             access_token,
@@ -72,4 +91,6 @@ module.exports = {
     generateResetPasswordToken,
     sendToken,
     getAccessTokenByRefreshToken,
+    findTokenByUserId,
+    deleteTokenOfUserByUserId,
 };

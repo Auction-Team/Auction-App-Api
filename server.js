@@ -16,10 +16,56 @@ const cookieSession = require('cookie-session');
 
 const tokenService = require('./apis/services/token_service');
 
+const swaggerUI = require('swagger-ui-express');
+
+const swaggerJsDoc = require('swagger-jsdoc');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
+// Custom swagger
+
+// custom option swagger
+options = {
+    definition: {
+        openapi: '3.0.1',
+        info: {
+            title: 'Library API',
+            version: '1.0.0',
+            description: 'API Auction APP',
+        },
+        servers: [
+            {
+                url:
+                    process.env.DOMAIN_SERVER ||
+                    `http://localhost:${process.env.PORT}`,
+            },
+        ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    name: 'Authorization',
+                    bearerFormat: 'JWT',
+                    in: 'header',
+                },
+            },
+        },
+        security: [
+            {
+                bearerAuth: [],
+            },
+        ],
+    },
+    apis: [`${__dirname}/apis/routes/*.js`, 'server.js'],
+};
+// config swagger
+const spec = swaggerJsDoc(options);
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(spec));
+
 // Routes
 app.use('/api', require('./apis/routes/index'));
 

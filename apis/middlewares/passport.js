@@ -1,8 +1,10 @@
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const { ExtractJwt } = require('passport-jwt');
-const User = require('../models/user_model');
+const { tokenService, userService } = require('../services');
+const { User } = require('../models');
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
+const mongoose = require('mongoose');
 // config passport
 passport.serializeUser((user, done) => {
     done(null, user.id);
@@ -24,11 +26,15 @@ passport.use(
         },
         async (payload, done) => {
             try {
-                const user = await User.findById(payload.id);
-
-                if (!user) return done(null, false);
-
-                done(null, user);
+                const id = await mongoose.Types.ObjectId(payload.id);
+                const tokenByUserId = await tokenService.findTokenByUserId(id);
+                if (!tokenByUserId) return done(null, false);
+                done(
+                    null,
+                    await userService.getUserProfile(
+                        String(tokenByUserId.userId.toString())
+                    )
+                );
             } catch (error) {
                 done(error, false);
             }
@@ -42,8 +48,9 @@ passport.use(
         {
             clientID: process.env.CLIENT_ID,
             clientSecret: process.env.CLIENT_SECRET,
-            callbackURL:
-                'https://auction-app-pb-ec22-01.herokuapp.com/auth/google/callback',
+            callbackURL: `${
+                process.env.DOMAIN_SERVER || 'http://localhost:5000'
+            }/auth/google/callback`,
             passReqToCallback: true,
         },
         async (request, accessToken, refreshToken, profile, done) => {

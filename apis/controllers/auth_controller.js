@@ -4,6 +4,7 @@ const catchAsync = require('../utils/catch-async');
 const CustomError = require('../utils/custom-error');
 const sendEmail = require('../utils/send_email');
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 
 // Login user
 const login = catchAsync(async (req, res, next) => {
@@ -17,7 +18,7 @@ const login = catchAsync(async (req, res, next) => {
             new CustomError(httpStatus.BAD_REQUEST, 'Password not correct')
         );
 
-    tokenService.sendToken(user._id, res);
+    await tokenService.sendToken(user._id, res);
 });
 
 // Register user
@@ -106,14 +107,18 @@ const resetPassword = catchAsync(async (req, res, next) => {
     });
 });
 
-const refreshToken = catchAsync((req, res, next) => {
+const refreshToken = catchAsync(async (req, res, next) => {
     const { refresh_token } = req.cookies;
     if (!refresh_token)
         return next(new CustomError(httpStatus.BAD_REQUEST, 'Please logging'));
     tokenService.getAccessTokenByRefreshToken(refresh_token, res);
 });
 
-const logout = catchAsync((req, res, next) => {
+const logout = catchAsync(async (req, res, next) => {
+    const userId = mongoose.Types.ObjectId(req.user.id);
+
+    await tokenService.deleteTokenOfUserByUserId(userId);
+
     res.cookie('refresh_token', null, {
         expires: new Date(Date.now()),
         httpOnly: true,
