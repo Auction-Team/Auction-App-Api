@@ -16,6 +16,10 @@ const productSchema = new mongoose.Schema({
         type:Number,
         default:0
     },
+    mainImage: {
+        type: String,
+        default: ''
+    },
     startingPrice:{
         type: Float64Array
     },
@@ -26,6 +30,11 @@ const productSchema = new mongoose.Schema({
     endAuctionTime:{
         type: Date,
         require: true
+    },
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required:true
     },
     listTags: [{
         type: mongoose.Types.ObjectId, 
