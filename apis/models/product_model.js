@@ -12,6 +12,10 @@ const productSchema = new mongoose.Schema({
         type: String,
         maxlength: 5000
     },
+    quantity:{
+        type:Number,
+        default:0
+    },
     startingPrice:{
         type: Float64Array
     },
