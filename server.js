@@ -106,7 +106,7 @@ app.get(
     }
 );
 
-// middleWares handle error
+// middleWares handle error  
 app.use(errorMiddleware);
 
 const URI = process.env.DB_CONNECTION;
