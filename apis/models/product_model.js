@@ -1,12 +1,14 @@
 const mongoose = require('mongoose');
 const productSchema = new mongoose.Schema({
-    name: {
+    auctionName: {
         type: String,
-        maxlength: 255
+        maxlength: 255,
+        require:true
     },
     brief: {
         type: String,
-        maxlength: 500
+        maxlength: 500,
+        require:true
     },
     description: {
         type: String,
@@ -14,14 +16,27 @@ const productSchema = new mongoose.Schema({
     },
     quantity:{
         type:Number,
-        default:0
+        default:1,
+        require:true
+    },
+    quantityUnit:{
+        type: String,
+        maxlength:255,
+        default:'',
+        require:true
     },
     mainImage: {
         type: String,
-        default: ''
+        default: '',
+        //require:true
     },
+    subImages: [{
+        type: String, 
+        default: ''
+    }],
     startingPrice:{
-        type: Float64Array
+        type: Float64Array,
+        require: true
     },
     startAuctionTime:{
         type: Date,
@@ -36,10 +51,6 @@ const productSchema = new mongoose.Schema({
         ref: 'Category',
         required:true
     },
-    listTags: [{
-        type: mongoose.Types.ObjectId, 
-        ref: 'Tag'
-    }],
     owner: {
         type: mongoose.Types.ObjectId, 
         ref: 'User'
