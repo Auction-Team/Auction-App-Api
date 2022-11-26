@@ -2,7 +2,6 @@ const Joi = require('joi');
 const createProductSchema = {
     body: Joi.object().keys({
         auctionName: Joi.string().max(255).required(),
-        brief: Joi.string().max(255).required(),
         description: Joi.string().max(500),
         quantity: Joi.number().min(1).required(),
         quantityUnit: Joi.string().max(255).required(),
@@ -17,7 +16,6 @@ const createProductSchema = {
 const updateProductSchema = {
     body: Joi.object().keys({
         auctionName: Joi.string().max(255).required(),
-        brief: Joi.string().max(255).required(),
         description: Joi.string().max(500),
         quantity: Joi.number().min(1).required(),
         quantityUnit: Joi.string().max(255).required(),

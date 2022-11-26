@@ -1,24 +1,17 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catch-async');
 const CustomError = require('../utils/custom-error');
-const productService = require('../services/product_service')
-const mongoose = require('mongoose');
+const { productService } = require('../services');
 
 
-const createProduct = catchAsync(async (req, res) => {
-    try {
-        const { auctionName, brief, description, quantity,quantityUnit,mainImage,subImages,startingPrice,startAuctionTime,endAuctionTime,category} = req.body
-        const newProduct = await postService.createProduct( auctionName, brief, description, quantity,quantityUnit,mainImage,subImages,startingPrice,startAuctionTime,endAuctionTime,category, req.user._id);
+const createProduct = catchAsync(async (req, res,next) => {
+        const newProduct = await productService.createProduct({...req.body},req.user.id);
         console.log("Add new product finished")
-        console.log(newPost)
+        console.log(newProduct)
         return res.status(httpStatus.OK).send({newProduct: {
             ...newProduct._doc,
             user: req.user
         }})
-    } catch (err) {
-        return res.status(500).json({msg: err.message})
-    }
-    
 })
 
 module.exports = {
