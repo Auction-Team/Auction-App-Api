@@ -20,12 +20,112 @@ const swaggerUI = require('swagger-ui-express');
 
 const swaggerJsDoc = require('swagger-jsdoc');
 
+const paypal = require('paypal-rest-sdk');
+
+const ejs = require('ejs');
+
 const app = express();
 app.use(cors({
-    origin: '*'
+    origin: '*',
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.set('view engine', 'ejs');
+app.get('/',(req,res) => res.render('index'))
+
+// test Paypal sandbox
+paypal.configure({
+    'mode': 'sandbox', //sandbox or live
+    'client_id': process.env.PAYPAL_CLIENT_ID,
+    'client_secret': process.env.PAYPAL_CLIENT_SECRET
+});
+
+// Authorize url
+paypal.openid_connect.authorize_url({'scope': 'openid profile'})
+// Get tokeninfo with Authorize code
+paypal.openIdConnect.tokeninfo.create("Replace with authorize code", (error, tokeninfo) => {
+    console.log(tokeninfo);
+});
+// Get tokeninfo with Refresh code
+paypal.openIdConnect.tokeninfo.refresh("Replace with refresh_token", (error, tokeninfo) => {
+    console.log(tokeninfo);
+});
+
+// Get userinfo with Access code
+paypal.openIdConnect.userinfo.get("Replace with access_code", (error, userinfo) => {
+    console.log(userinfo);
+});
+app.post('/pay', (req, res) => {
+    const create_payment_json = {
+        "intent": "sale",
+        "payer": {
+            "payment_method": "paypal"
+        },
+        "redirect_urls": {
+            "return_url": "http://localhost:5000/success",
+            "cancel_url": "http://localhost:5000/cancel"
+        },
+        "transactions": [{
+            "item_list": {
+                "items": [{
+                    "name": "Iphone 4S",
+                    "sku": "001",
+                    "price": "25.00",
+                    "currency": "USD",
+                    "quantity": 1
+                }]
+            },
+            "amount": {
+                "currency": "USD",
+                "total": "25.00"
+            },
+            "description": "Iphone 4S cũ giá siêu rẻ"
+        }]
+    };
+
+    paypal.payment.create(create_payment_json, function (error, payment) {
+        if (error) {
+            throw error;
+        } else {
+            for (let i = 0; i < payment.links.length; i++) {
+                if (payment.links[i].rel === 'approval_url') {
+                    res.redirect(payment.links[i].href);
+                }
+            }
+
+        }
+    });
+
+});
+
+app.get('/success', (req, res) => {
+
+    const payerId = req.query.PayerID;
+    const paymentId = req.query.paymentId;
+
+    const execute_payment_json = {
+        "payer_id": payerId,
+        "transactions": [{
+            "amount": {
+                "currency": "USD",
+                "total": "25.00"
+            }
+        }]
+    };
+    paypal.payment.execute(paymentId, execute_payment_json, function(error, payment) {
+        if (error) {
+            console.log(error.response);
+            throw error;
+        } else {
+            console.log(payment);
+            res.send('Success (Mua hàng thành công)');
+        }
+    });
+});
+
+app.get('/cancel',(req,res) => res.send('Cancelled (Đơn hàng đã hủy)'));
+
+// end test paypal sandbox
 
 // Custom swagger
 
@@ -82,7 +182,7 @@ app.use(
     cookieSession({
         maxAge: 30 * 24 * 60 * 60 * 1000,
         keys: ['test'],
-    })
+    }),
 );
 
 // Config passport
@@ -95,7 +195,7 @@ app.get(
     '/auth/google',
     passport.authenticate('google', {
         scope: ['profile', 'email'],
-    })
+    }),
 );
 
 // Retrieve user data using the access token received
@@ -104,7 +204,7 @@ app.get(
     passport.authenticate('google', { session: false }),
     (req, res) => {
         tokenService.sendToken(req.user._id, res);
-    }
+    },
 );
 
 // middleWares handle error
@@ -145,14 +245,14 @@ app.use(errorMiddleware);
 //         }
 //     )
 // };
-const URI = process.env.DB_CONNECTION
+const URI = process.env.DB_CONNECTION;
 mongoose.connect(URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
 }, err => {
-    if(err) throw err;
-    console.log('Connected to mongodb')
-})
+    if (err) throw err;
+    console.log('Connected to mongodb');
+});
 
 // connectWithRetry()
 

@@ -50,7 +50,7 @@ const searchUser = async (req) => {
             buildSearch,
         ],
     }).count('user_count').then((data) => {
-        return data[0].user_count
+        return data.length > 0 ? data[0].user_count : 0
     })
     if (totalData > 0) {
         const result = await User.aggregate()
@@ -87,6 +87,7 @@ const getUserById = async (id) => {
 };
 
 const getUserByEmail = async (email) => {
+
     return User.findOne({ email });
 };
 
