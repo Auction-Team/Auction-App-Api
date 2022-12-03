@@ -37,4 +37,25 @@ router.post(
     userController.uploadImageUserProfile
 );
 
+/**
+ * @swagger
+ * /api/user/search:
+ *   get:
+ *     summary: Search user list
+ *     tags: [User]
+ *     responses:
+ *       200:
+ *         description: Upload images successfully
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal Server Error
+ *
+ */
+router.get(
+    '/search',
+    // passport.authenticate('jwt', { session: false }),
+    userController.searchUser
+)
+
 module.exports = router;

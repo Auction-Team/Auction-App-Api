@@ -5,6 +5,15 @@ const CustomError = require('../utils/custom-error');
 const { s3 } = require('../utils/upload');
 const mongoose = require('mongoose');
 
+// sereach for user
+const searchUser = catchAsync(async (req, res, next) => {
+    const userList = await userService.searchUser(req);
+    res.status(httpStatus.OK).json({
+        success: true,
+        userList
+    });
+});
+
 // upload profile user
 const uploadImageUserProfile = catchAsync(async (req, res, next) => {
     try {
@@ -19,11 +28,11 @@ const uploadImageUserProfile = catchAsync(async (req, res, next) => {
             };
             await s3.headObject(params).promise();
             console.log('File found!');
-            await s3.deleteObject(params, (err,data) => {
-                if(err){
+            await s3.deleteObject(params, (err, data) => {
+                if (err) {
                     console.log(err);
-                }else{
-                    console.log('Delete file successfully')
+                } else {
+                    console.log('Delete file successfully');
                 }
             });
         }
@@ -40,4 +49,5 @@ const uploadImageUserProfile = catchAsync(async (req, res, next) => {
 
 module.exports = {
     uploadImageUserProfile,
+    searchUser,
 };
