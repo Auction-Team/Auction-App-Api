@@ -1,10 +1,22 @@
-const { Product } = require('../models/product_model')
+const Product  = require('../models/product_model')
 // const httpStatus = require('http-status')
 // const CustomError = require('../../utils/custom-error')
 
-const createProduct = async (auctionName, description, quantity, quantityUnit, mainImage, subImages, startingPrice, startAuctionTime, endAuctionTime, category, id ) => {
+const createProduct = async (auctionName, description, quantity, quantityUnit, startingPrice, startAuctionTime, endAuctionTime, category, id ) => {
+    const mainImage="https://uxwing.com/wp-content/themes/uxwing/download/business-professional-services/product-icon.png";
+    const subImages=[];
     const newProduct = new Product({
-        auctionName, description, quantity, quantityUnit, mainImage, subImages, startingPrice, startAuctionTime, endAuctionTime, category, id
+        auctionName: auctionName, 
+        description: description, 
+        quantity: quantity, 
+        quantityUnit: quantityUnit,
+        mainImage: mainImage,
+        subImages: subImages, 
+        startingPrice: startingPrice, 
+        startAuctionTime: startAuctionTime, 
+        endAuctionTime: endAuctionTime, 
+        category: category, 
+        owner: id
     })
     return newProduct.save()
 }
