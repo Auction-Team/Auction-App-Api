@@ -1,6 +1,7 @@
 const User = require('../models/user_model');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { uploadImageUser, s3 } = require('../utils/upload');
 
 const checkEmailExists = async (email) => {
     return await User.findOne({ email });
@@ -46,7 +47,6 @@ const getUserByPasswordToken = async (token) => {
         .createHash('sha256')
         .update(token)
         .digest('hex');
-
     return await User.findOne({
         resetPasswordToken,
         resetPasswordExpire: { $gt: Date.now() },

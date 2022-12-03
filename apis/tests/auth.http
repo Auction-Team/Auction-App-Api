@@ -1,19 +1,12 @@
 
-POST http://localhost:5000/api/auth/activated HTTP/1.1
+// Login user
+POST http://107.22.138.106:5000/api/auth/login HTTP/1.1
 content-type: application/json
 
 {
-    "code" : "test api"
+    "email" : "longtam20015@gmail.com",
+    "password": "hoaiphong"
 }
-
-# // Login user
-# POST http://localhost:5000/api/auth/login HTTP/1.1
-# content-type: application/json
-
-# {
-#     "email" : "longtam20016@gmail.com",
-#     "password": "password"
-# }
 
 # // Register user
 # POST http://localhost:5000/api/auth/register HTTP/1.1

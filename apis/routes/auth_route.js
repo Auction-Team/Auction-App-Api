@@ -10,7 +10,10 @@ const passportConfig = require('../middlewares/passport');
 
 const { authValidation } = require('../validations');
 
+const { uploadImageUser, s3 } = require('../utils/upload');
+
 const validate = require('../middlewares/validate');
+
 /**
  * @swagger
  * tags:
@@ -307,5 +310,14 @@ router.get(
     passport.authenticate('jwt', { session: false }),
     authController.secret
 );
+
+router.post('/upload', uploadImageUser.single('file'), async (req, res, err) => {
+    const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: req.file.key,
+    };
+    const data = await s3.getSignedUrl('getObject',params)
+    res.status(200).json(data);
+});
 
 module.exports = router;

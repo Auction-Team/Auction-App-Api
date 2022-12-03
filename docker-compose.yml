@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  app:
+    image: project-mern/app-auction:v31
+    volumes:
+      - ./:/app # mount từ môi trường gốc vào trong để nếu các bạn thay đổi code thì bên trong sẽ tự động cập nhật
+    env_file: .env
+    ports:
+      - "${PORT}:${PORT}" # phần này ta định nghĩa ở file .env nhé
+    restart: unless-stopped
+    depends_on:
+        - db
+    networks:
+        - db-network
+  
+  db:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - .docker/data/db:/data/db
+      - .docker/db-entrypoint.sh:/docker-entrypoint-initdb.d/db-entrypoint.sh
+    restart: unless-stopped
+    networks:
+      - db-network
+    environment:
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+  
+networks:
+  db-network:
+    driver: bridge
+  

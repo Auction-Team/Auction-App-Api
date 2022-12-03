@@ -21,6 +21,15 @@ const userSchema = new mongoose.Schema({
         required: true,
         maxlength: 30,
     },
+    avatar: {
+        type: String,
+        default:
+            'user/hinh-anh-chill+(2).jpg',
+    },
+    firstUpload: {
+        type: Boolean,
+        default: true,
+    },
     email: {
         type: String,
         required: true,
