@@ -4,43 +4,94 @@ const crypto = require('crypto');
 const { uploadImageUser, s3 } = require('../utils/upload');
 
 const searchUser = async (req) => {
-    const userList = await User.aggregate([
-        {
-            $match: {
+    const { keySearch, multiSearchEnum, page, size, sort } = req.query;
+    let buildSearch = {};
+    const params = {
+        keySearch: keySearch || '',
+        multiSearchEnum: multiSearchEnum || '',
+        page: Number.parseInt(page) || 0,
+        size: Number.parseInt(size) || 5,
+        sort: sort || 'email,asc',
+    };
+    const sortColumn = params.sort.split(',')[0];
+    const sortDir = params.sort.split(',')[1] === 'asc' ? 1 : -1;
+    const offset = params.page * params.size;
+    const limit = params.size;
+    let buildSort = {};
+    switch (sortColumn) {
+        case 'email':
+            buildSort = { email: sortDir };
+            break;
+        case 'fullName':
+            buildSort = { fullName: sortDir };
+            break;
+        default:
+            buildSort = { email: 0 };
+    }
+    switch (params.multiSearchEnum) {
+        case 'email':
+            buildSearch = {
+                'email': { $regex: '.*' + params.keySearch + '.*', $options: 'i' },
+            };
+            break;
+        case 'fullName':
+            buildSearch = {
+                'fullName': { $regex: '.*' + params.keySearch + '.*', $options: 'i' },
+            };
+            break;
+        default:
+            buildSearch = {
+                'email': { $regex: '.*' + params.keySearch + '.*', $options: 'i' },
+                'fullName': { $regex: '.*' + params.keySearch + '.*', $options: 'i' },
+            };
+    }
+    const totalData = await User.aggregate().match({
+        $or: [
+            buildSearch,
+        ],
+    }).count('user_count').then((data) => {
+        return data[0].user_count
+    })
+    if (totalData > 0) {
+        const result = await User.aggregate()
+            .match({
                 $or: [
-                    { 'email': { $regex: '.*' + 'hohoaiphong' + '.*', $options: 'i' } },
+                    buildSearch,
                 ],
-            },
-        },
-        {
-            $project: {
+            }).project({
                 _id: 1,
                 fullName: 2,
                 email: 3,
                 avatar: 4,
-            },
-        },
-    ]).sort({ email: 1 })
-        .skip(2)
-        .limit(1)
-        .allowDiskUse(true);
-    return userList;
+            })
+            .sort(buildSort)
+            .skip(offset)
+            .limit(limit) || [];
+        return {
+            totalData,
+            datas: result,
+        };
+    }
+    return {
+        totalData,
+        datas: [],
+    };
 };
 
 const checkEmailExists = async (email) => {
-    return await User.findOne({ email });
+    return User.findOne({ email });
 };
 
 const getUserById = async (id) => {
-    return await User.findById(id);
+    return User.findById(id);
 };
 
 const getUserByEmail = async (email) => {
-    return await User.findOne({ email });
+    return User.findOne({ email });
 };
 
 const getUserProfile = async (id) => {
-    return await User.findById(id).select('-password');
+    return User.findById(id).select('-password');
 };
 
 const comparePassword = async (password, passwordHash) => {
@@ -71,7 +122,7 @@ const getUserByPasswordToken = async (token) => {
         .createHash('sha256')
         .update(token)
         .digest('hex');
-    return await User.findOne({
+    return User.findOne({
         resetPasswordToken,
         resetPasswordExpire: { $gt: Date.now() },
     });
@@ -87,4 +138,4 @@ module.exports = {
     getUserById,
     searchUser,
 };
-;
+

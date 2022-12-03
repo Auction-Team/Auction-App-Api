@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 
 // sereach for user
 const searchUser = catchAsync(async (req, res, next) => {
+
     const userList = await userService.searchUser(req);
     res.status(httpStatus.OK).json({
         success: true,

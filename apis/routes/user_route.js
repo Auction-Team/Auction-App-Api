@@ -9,6 +9,8 @@ const passport = require('passport');
 const passportConfig = require('../middlewares/passport');
 
 const { uploadImageUser, s3 } = require('../utils/upload');
+
+const authorize = require('../middlewares/authorize')
 /**
  * @swagger
  * tags:
@@ -43,6 +45,27 @@ router.post(
  *   get:
  *     summary: Search user list
  *     tags: [User]
+ *     parameters:
+ *     - in: query
+ *       name: keySearch
+ *       type: string
+ *       description: input value search user
+ *     - in: query
+ *       name: multiSearchEnum
+ *       type: string
+ *       description: column search
+ *     - in: query
+ *       name: page
+ *       type: integer
+ *       description: page of list data
+ *     - in: query
+ *       name: size
+ *       type: integer
+ *       description: size of list data
+ *     - in: query
+ *       name: sort
+ *       type: string
+ *       description: column search
  *     responses:
  *       200:
  *         description: Upload images successfully
@@ -55,6 +78,7 @@ router.post(
 router.get(
     '/search',
     // passport.authenticate('jwt', { session: false }),
+    // authorize,
     userController.searchUser
 )
 

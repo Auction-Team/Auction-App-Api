@@ -10,7 +10,6 @@ const mongoose = require('mongoose');
 const login = catchAsync(async (req, res, next) => {
     const { email, password } = req.body;
     const user = await userService.getUserByEmail(email);
-
     if (!user)
         return next(new CustomError(httpStatus.NOT_FOUND, 'Email not exists'));
     if (!(await userService.comparePassword(password, user.password)))
