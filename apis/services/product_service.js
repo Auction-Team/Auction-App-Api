@@ -22,6 +22,10 @@ const createProduct = async ({auctionName, description, quantity, quantityUnit, 
     return newProduct.save()
 }
 
+const getProductById = async (id) => {
+    return Product.findById(id);
+};
+
 // const updatePost = async (content, images, id) => {
 //     const post = await Post.findOneAndUpdate({_id: id}, {
 //         content, images
@@ -38,4 +42,5 @@ const createProduct = async ({auctionName, description, quantity, quantityUnit, 
 
 module.exports = {
     createProduct,
+    getProductById
 };
