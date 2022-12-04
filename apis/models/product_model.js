@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const productSchema = new mongoose.Schema({
-    auction_name: {
+    auctionName: {
         type: String,
         maxlength: 255,
         require:true
@@ -14,26 +14,26 @@ const productSchema = new mongoose.Schema({
         default:1,
         require:true
     },
-    quantity_unit:{
+    quantityUnit:{
         type: String,
         maxlength:255,
         default:'',
         require:true
     },
-    main_image: {
+    mainImage: {
         type: String,
         default: '',
         //require:true
     },
-    sub_images: [{
-        type: String, 
-        default: ''
-    }],
-    starting_price:{
+    subImages: {
+        type: Array, 
+        default: []
+    },
+    startingPrice:{
         type: Number,
         require: true
     },
-    start_auction_time:{
+    startAuctionTime:{
         type: Date,
         reqsuire:true
     },
