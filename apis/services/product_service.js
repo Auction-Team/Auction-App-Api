@@ -4,7 +4,7 @@ const Product  = require('../models/product_model')
 
 const createProduct = async ({auctionName, description, quantity, quantityUnit, startingPrice, startAuctionTime, endAuctionTime, category}, id ) => {
     console.log("Create product");
-    const mainImage="/product/default-image";
+    const mainImage="product/default-image";
     const subImages=[];
     const newProduct = new Product({
         auctionName: auctionName, 

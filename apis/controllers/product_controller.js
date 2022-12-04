@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catch-async');
 const { productService } = require('../services');
+const { s3 } = require('../utils/upload');
 
 
 const createProduct = catchAsync(async (req, res,next) => {
@@ -21,13 +22,25 @@ const createProduct = catchAsync(async (req, res,next) => {
 // upload profile user
 const uploadProductImage = catchAsync(async (req, res, next) => {
     try {
-        const productId = mongoose.Types.ObjectId(req.body.productId);
-        const mainImageFlag = mongoose.Types.ObjectId(req.body.mainImageFlag);
-        const subImagesIndex = mongoose.Types.ObjectId(req.body.subImagesIndex);
+        console.log("upload complete --> store data to database");
+        const { productId,mainImageFlag,subImagesIndex } = req.query;
         const product = await productService.getProductById(productId);
-        if (mainImageFlag!=true)
+        if (!product)
+        return next(
+            new CustomError(
+                httpStatus.BAD_REQUEST,
+                'Product not found'
+            )
+        );
+        
+        console.log("found product");
+
+        if (mainImageFlag!=null&&mainImageFlag==true)
         {
-            if(product.mainImage=="/product/default-image"){
+            console.log(product.mainImage);
+            if(product.mainImage!="product/default-image"){
+                
+                console.log("delete main image");
                 const params = {
                     Bucket: process.env.AWS_BUCKET_NAME,
                     Key: product.mainImage,
@@ -39,6 +52,8 @@ const uploadProductImage = catchAsync(async (req, res, next) => {
                 });
             }
         }else{
+            if(subImagesIndex!=null && subImagesIndex!=-1){
+            console.log("delete sub image at"+ subImagesIndex);
             const productSubImageDelete=product.subImages[subImagesIndex];
             const params = {
                 Bucket: process.env.AWS_BUCKET_NAME,
@@ -49,18 +64,24 @@ const uploadProductImage = catchAsync(async (req, res, next) => {
             await s3.deleteObject(params, (err, data) => {
                 // nothing todo
             });
+            }
         }
-        if(!mainImageFlag){
-            product.subImages.push(req.file.key);
-        }else{
+        
+        console.log("store new data");
+        if(mainImageFlag!=null&&mainImageFlag==true){
             product.mainImage = req.file.key;
+        }else{
+            if(subImagesIndex!=null && subImagesIndex!=-1){
+                product.subImages[subImagesIndex]=req.file.key;
+            }else{
+                product.subImages.push(req.file.key);
+            }
         }
         await product.save({ validateBeforeSave: false });
         product.mainImage = process.env.S3_LOCATION + product.mainImage;
-        product.subImages(function(item, index){
-            console.log(' product.subImages['+index+'] is '+ item);
-            product.subImages[index]=process.env.S3_LOCATION + product.subImages[index];
-            console.log(' product.subImages['+index+'] is '+ item);
+        product.subImages=product.subImages.map(function(item){
+            console.log(' product.subImages is: '+ item);
+            return process.env.S3_LOCATION + item;
         });
         res.status(200).json(product);
     } catch (error) {
