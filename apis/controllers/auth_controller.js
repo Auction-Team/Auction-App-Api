@@ -5,6 +5,7 @@ const CustomError = require('../utils/custom-error');
 const sendEmail = require('../utils/send_email');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const {getProvinces} = require('sub-vn')
 
 // Login user
 const login = catchAsync(async (req, res, next) => {
@@ -110,7 +111,7 @@ const refreshToken = catchAsync(async (req, res, next) => {
     const { refresh_token } = req.cookies;
     if (!refresh_token)
         return next(new CustomError(httpStatus.BAD_REQUEST, 'Please logging'));
-    tokenService.getAccessTokenByRefreshToken(refresh_token, res);
+    await  tokenService.getAccessTokenByRefreshToken(refresh_token, res);
 });
 
 const logout = catchAsync(async (req, res, next) => {
@@ -147,8 +148,7 @@ const changePassword = catchAsync(async (req, res, next) => {
     const user = await userService.getUserById(id);
     const isMatchPassword = await bcrypt.compare(oldPassword, user.password);
     if (isMatchPassword) {
-        const newPasswordBcrypt = await bcrypt.hash(newPassword, 10);
-        user.password = newPasswordBcrypt;
+        user.password = await bcrypt.hash(newPassword, 10);
         user.save();
     }
     return res.status(httpStatus.OK).json({
@@ -158,9 +158,10 @@ const changePassword = catchAsync(async (req, res, next) => {
 });
 
 const secret = (req, res, next) => {
+    const testData = getProvinces()
     return res.status(httpStatus.OK).json({
         success: true,
-        message: 'Test passport',
+        testData
     });
 };
 

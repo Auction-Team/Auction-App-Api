@@ -7,7 +7,6 @@ const mongoose = require('mongoose');
 
 // sereach for user
 const searchUser = catchAsync(async (req, res, next) => {
-
     const userList = await userService.searchUser(req);
     res.status(httpStatus.OK).json({
         success: true,
@@ -20,7 +19,6 @@ const uploadImageUserProfile = catchAsync(async (req, res, next) => {
     try {
         const userId = mongoose.Types.ObjectId(req.user.id);
         const user = await userService.getUserById(userId);
-        console.log(user.avatar);
         if (user.firstUpload) user.firstUpload = false;
         else {
             const params = {
@@ -30,11 +28,7 @@ const uploadImageUserProfile = catchAsync(async (req, res, next) => {
             await s3.headObject(params).promise();
             console.log('File found!');
             await s3.deleteObject(params, (err, data) => {
-                if (err) {
-                    console.log(err);
-                } else {
-                    console.log('Delete file successfully');
-                }
+                // nothing todo
             });
         }
         user.avatar = req.file.key;
