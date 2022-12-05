@@ -10,12 +10,20 @@ const { productValidation } = require('../validations');
 
 const validate = require('../middlewares/validate');
 
+const {uploadSingleImageProduct, s3 } = require('../utils/upload');
 
 router.post(
     '/create',
     passport.authenticate('jwt', { session: false }),
     validate(productValidation.createProductSchema),
     productController.createProduct
+);
+
+router.post(
+    '/upload',
+    passport.authenticate('jwt', { session: false }),
+    uploadSingleImageProduct.single('file'),
+    productController.uploadProductImage
 );
 
 

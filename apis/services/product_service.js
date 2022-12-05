@@ -2,8 +2,9 @@ const Product  = require('../models/product_model')
 // const httpStatus = require('http-status')
 // const CustomError = require('../../utils/custom-error')
 
-const createProduct = async (auctionName, description, quantity, quantityUnit, startingPrice, startAuctionTime, endAuctionTime, category, id ) => {
-    const mainImage="https://uxwing.com/wp-content/themes/uxwing/download/business-professional-services/product-icon.png";
+const createProduct = async ({auctionName, description, quantity, quantityUnit, startingPrice, startAuctionTime, endAuctionTime, category}, id ) => {
+    console.log("Create product");
+    const mainImage="product/default-image";
     const subImages=[];
     const newProduct = new Product({
         auctionName: auctionName, 
@@ -21,6 +22,10 @@ const createProduct = async (auctionName, description, quantity, quantityUnit, s
     return newProduct.save()
 }
 
+const getProductById = async (id) => {
+    return Product.findById(id);
+};
+
 // const updatePost = async (content, images, id) => {
 //     const post = await Post.findOneAndUpdate({_id: id}, {
 //         content, images
@@ -37,4 +42,5 @@ const createProduct = async (auctionName, description, quantity, quantityUnit, s
 
 module.exports = {
     createProduct,
+    getProductById
 };
