@@ -51,6 +51,18 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    province: {
+        type: String,
+        maxlength: 255,
+    },
+    district: {
+        type: String,
+        maxlength: 255,
+    },
+    ward: {
+        type: String,
+        maxlength: 255,
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 });

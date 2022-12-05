@@ -33,6 +33,9 @@ const validate = require('../middlewares/validate');
  *         - fullName
  *         - email
  *         - password
+ *         - province
+ *         - district
+ *         - ward
  *       properties:
  *         firstName:
  *           type: string
@@ -44,12 +47,21 @@ const validate = require('../middlewares/validate');
  *           type: string
  *         password:
  *           type: string
+ *         province:
+ *           type: string
+ *         district:
+ *           type: string
+ *         ward:
+ *           type: string
  *       example:
  *         firstName: doe
  *         lastName: john
  *         fullName: john doe
  *         email: johndoe@gmail.com
  *         password: hoaiphong
+ *         province: Thành phố hố chí minh
+ *         district: Cách mạng tháng 8
+ *         ward: Đường lê thị hoa
  */
 
 /**
@@ -84,7 +96,7 @@ const validate = require('../middlewares/validate');
 router.post(
     '/login',
     validate(authValidation.loginSchema),
-    authController.login
+    authController.login,
 );
 
 /**
@@ -112,7 +124,7 @@ router.post(
 router.post(
     '/register',
     validate(authValidation.registerSchema),
-    authController.register
+    authController.register,
 );
 
 /**
@@ -144,7 +156,7 @@ router.post(
 router.post(
     '/forgot/password',
     validate(authValidation.forgotPasswordSchema),
-    authController.forgotPassword
+    authController.forgotPassword,
 );
 
 /**
@@ -189,7 +201,7 @@ router.post(
 router.put(
     '/password/reset/:token',
     validate(authValidation.activateTokenForgotPasswordSchema),
-    authController.resetPassword
+    authController.resetPassword,
 );
 
 /**
@@ -227,7 +239,7 @@ router.get('/refresh/token', authController.refreshToken);
 router.get(
     '/logout',
     passport.authenticate('jwt', { session: false }),
-    authController.logout
+    authController.logout,
 );
 
 /**
@@ -248,7 +260,7 @@ router.get(
 router.get(
     '/profile',
     passport.authenticate('jwt', { session: false }),
-    authController.profile
+    authController.profile,
 );
 
 /**
@@ -287,7 +299,7 @@ router.put(
     '/change/password',
     passport.authenticate('jwt', { session: false }),
     validate(authValidation.changePasswordSchema),
-    authController.changePassword
+    authController.changePassword,
 );
 
 /**
@@ -308,7 +320,7 @@ router.put(
 router.get(
     '/secret',
     // passport.authenticate('jwt', { session: false }),
-    authController.secret
+    authController.secret,
 );
 
 router.post('/upload', uploadImageUser.single('file'), async (req, res, err) => {
@@ -316,7 +328,7 @@ router.post('/upload', uploadImageUser.single('file'), async (req, res, err) => 
         Bucket: process.env.AWS_BUCKET_NAME,
         Key: req.file.key,
     };
-    const data = await s3.getSignedUrl('getObject',params)
+    const data = await s3.getSignedUrl('getObject', params);
     res.status(200).json(data);
 });
 

@@ -50,8 +50,8 @@ const searchUser = async (req) => {
             buildSearch,
         ],
     }).count('user_count').then((data) => {
-        return data.length > 0 ? data[0].user_count : 0
-    })
+        return data.length > 0 ? data[0].user_count : 0;
+    });
     if (totalData > 0) {
         const result = await User.aggregate()
             .match({
@@ -105,6 +105,9 @@ const createUser = async ({
                               fullName,
                               email,
                               password,
+                              province,
+                              district,
+                              ward,
                           }) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const newUser = new User({
@@ -113,6 +116,9 @@ const createUser = async ({
         fullName: fullName,
         email: email,
         password: passwordHash,
+        province,
+        district,
+        ward
     });
 
     return newUser.save();

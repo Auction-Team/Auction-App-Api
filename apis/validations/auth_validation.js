@@ -14,6 +14,9 @@ const registerSchema = {
         fullName: Joi.string().max(45).required(),
         email: Joi.string().required().email(),
         password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')),
+        province: Joi.string().max(255),
+        district: Joi.string().max(255),
+        ward: Joi.string().max(255)
     }),
 };
 
