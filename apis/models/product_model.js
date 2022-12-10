@@ -46,6 +46,11 @@ const productSchema = new mongoose.Schema({
         ref: 'Category',
         required:true
     },
+    deletedFlag:{
+        type:Boolean,
+        require:false,
+        default: false
+    },
     owner: {
         type: mongoose.Types.ObjectId, 
         ref: 'User',
