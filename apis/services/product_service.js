@@ -22,7 +22,7 @@ const createProduct = async ({auctionName, description, quantity, quantityUnit, 
     })
     return newProduct.save()
 }
-const updateProduct = async ({productId, auctionName, description, quantity, quantityUnit, startingPrice, startAuctionTime, endAuctionTime, category}) => {
+const updateProduct = async (productId,{ auctionName, description, quantity, quantityUnit, startingPrice, startAuctionTime, endAuctionTime, category}) => {
     console.log("Update product");
 
 
@@ -33,8 +33,6 @@ const updateProduct = async ({productId, auctionName, description, quantity, qua
             description: description, 
             quantity: quantity, 
             quantityUnit: quantityUnit,
-            mainImage: mainImage,
-            subImages: subImages, 
             startingPrice: startingPrice, 
             startAuctionTime: startAuctionTime, 
             endAuctionTime: endAuctionTime, 
@@ -48,26 +46,23 @@ const updateProduct = async ({productId, auctionName, description, quantity, qua
 const deleteProduct = async (productId) => {
     console.log("Delete product");
 
-    Product.findByIdAndRemove(productId)
-    .then((product) => {
-        if (product) {
-            return true;
-        } else {
-            return false;
-        }
-    })
+    const deletedProduct= await Product.findByIdAndUpdate(
+        productId,
+        {
+            deletedFlag:true
+        },
+        { new: true }
+    );
+    return deletedProduct.deletedFlag;
 }
 const getAllCategory = async()=>{
-    let buildSort = { name: 1};
-    return Category.aggregate().project({
-        _id: 1,
-        name: 2,
-        description: 3
-    }).sort(buildSort);
+    //let buildSort = { name: 1};
+    return await Category.find();
 }
 const getProductById = async (id) => {
     const product= Product.findById(id);
-    if(product.deletedFlag!=false){
+    console.log(product.deletedFlag);
+    if(product.deletedFlag!=null&&product.deletedFlag!=false){
         return null;
     }else{
         return product;

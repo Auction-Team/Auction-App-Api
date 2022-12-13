@@ -19,7 +19,7 @@ router.get(
 );
 
 router.get(
-    '/detail',
+    '/detail/:productId',
     productController.getDetailProduct
 );
 
@@ -31,14 +31,14 @@ router.post(
 );
 
 router.put(
-    '/edit',
+    '/edit/:productId',
     passport.authenticate('jwt', { session: false }),
     validate(productValidation.createProductSchema),
     productController.updateProduct
 );
 
 router.delete(
-    '/delete',
+    '/delete/:productId',
     passport.authenticate('jwt', { session: false }),
     productController.deleteProduct
 );

@@ -1,5 +1,6 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catch-async');
+const CustomError = require('../utils/custom-error');
 const { productService } = require('../services');
 const { s3 } = require('../utils/upload');
 
@@ -7,25 +8,28 @@ const { s3 } = require('../utils/upload');
 // sereach for user
 const getAllCategory = catchAsync(async (req, res, next) => {
     const categoryList = await productService.getAllCategory();
+    console.log(categoryList);
     res.status(httpStatus.OK).json({
         success: true,
         categoryList
     });
 });
 const updateProduct = catchAsync(async (req,res,next)=>{
-    const oldProduct=productService.getProductById(productId);
+    const { productId } = req.params;
+    const oldProduct= await productService.getProductById(productId);
+    console.log(oldProduct);
     if(oldProduct==null||oldProduct.owner!=req.user.id){
         return next(new CustomError(httpStatus.NOT_FOUND, 'Product not exists'));
     }else{
         let currentDateTime=new Date();
         if(oldProduct.startAuctionTime>=currentDateTime){
-            const updatedProduct = await productService.updateProduct({...req.body});
+            const updatedProduct = await productService.updateProduct(productId,{...req.body});
             if (!updatedProduct) {
                 return next(new CustomError(httpStatus.INTERNAL_SERVER_ERROR, 'Can not update produuct'));
             }
             
-            updatedProduct.mainImage = process.env.S3_LOCATION + product.mainImage;
-            updatedProduct.subImages=product.subImages.map(function(item){
+            updatedProduct.mainImage = process.env.S3_LOCATION + updatedProduct.mainImage;
+            updatedProduct.subImages=updatedProduct.subImages.map(function(item){
                 console.log(' product.subImages is: '+ item);
                 return process.env.S3_LOCATION + item;
             });
@@ -39,18 +43,22 @@ const updateProduct = catchAsync(async (req,res,next)=>{
 })
 const deleteProduct = catchAsync(async (req,res,next)=>{
     try {
-        const oldProduct=productService.getProductById(req.params.id);
+        const { productId } = req.params;
+        console.log(productId);
+        const oldProduct= await productService.getProductById(productId);
+        console.log(oldProduct);
         if(oldProduct==null||oldProduct.owner!=req.user.id){
             return next(new CustomError(httpStatus.NOT_FOUND, 'Product not exists'));
         }else{
             let currentDateTime=new Date();
             if(oldProduct.startAuctionTime>=currentDateTime){
-                const deletedFlag = await productService.deleteProduct(req.params.id);
+                const deletedFlag = await productService.deleteProduct(productId);
+                console.log(deletedFlag);
                 return res.status(httpStatus.OK).send({success: {
                     deletedFlag
                 }})
             }else{
-                return next(new CustomError(httpStatus.BAD_REQUEST, 'Can not update product because it is being auctioned'));
+                return next(new CustomError(httpStatus.BAD_REQUEST, 'Can not delete product because it is being auctioned'));
             }
         }
     } catch (error) {
@@ -63,8 +71,8 @@ const createProduct = catchAsync(async (req, res,next) => {
         const newProduct = await productService.createProduct({...req.body},req.user.id);
         console.log("Add new product finished")
         console.log(newProduct)
-        newProduct.mainImage = process.env.S3_LOCATION + product.mainImage;
-        return res.status(httpStatus.OK).send({newProduct: {
+        newProduct.mainImage = process.env.S3_LOCATION + newProduct.mainImage;
+        return res.status(httpStatus.OK).send({product: {
             ...newProduct._doc
         }})
     } catch (error) {
@@ -73,17 +81,19 @@ const createProduct = catchAsync(async (req, res,next) => {
     }
 })
 const getDetailProduct = catchAsync(async (req, res, next) => {
-    const oldProduct = await productService.getUserProfile(req.param.productId);
-
-    if(oldProduct==null||oldProduct.owner!=req.user.id){
+    const { productId } = req.params;
+    console.log(productId);
+    const oldProduct = await productService.getProductById(productId);
+    console.log(oldProduct);
+    if(oldProduct==null){
         return next(new CustomError(httpStatus.NOT_FOUND, 'Product not exists'));
     }
-    oldProduct.mainImage = process.env.S3_LOCATION + product.mainImage;
-    oldProduct.subImages=product.subImages.map(function(item){
+    oldProduct.mainImage = process.env.S3_LOCATION + oldProduct.mainImage;
+    oldProduct.subImages=oldProduct.subImages.map(function(item){
         console.log(' product.subImages is: '+ item);
         return process.env.S3_LOCATION + item;
     });
-    return res.status(httpStatus.OK).send({oldProduct: {
+    return res.status(httpStatus.OK).send({product: {
         ...oldProduct._doc
     }})
 });
