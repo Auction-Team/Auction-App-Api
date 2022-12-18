@@ -2,6 +2,9 @@ const httpStatus = require('http-status');
 const catchAsync = require('../utils/catch-async');
 const CustomError = require('../utils/custom-error');
 const paypal = require('paypal-rest-sdk');
+const { reconcileService } = require('../services');
+const { randomUUID } = require('crypto'); 
+
 const depositTitle='Deposit money into the system';
 const inwardType='IN';
 const outwardType='OUT';
@@ -78,9 +81,10 @@ const successPayment = catchAsync(async (req, res, next) => {
            
         } else {
             console.log(payment);
+            var rid=randomUUID()+new Date().toISOString().replace(/:/g, '-');
             //res.send('Nạp tiền thành công');
-
-            return res.status(httpStatus.OK).send({success: true})
+            reconcileService.createReconcile(rid,depositTitle,transactionalMoney,'USD',inwardType,accountId);
+            return res.status(httpStatus.OK).send({success: true});
         }
     });
 });
