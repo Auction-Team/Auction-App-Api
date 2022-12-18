@@ -2,7 +2,9 @@ const httpStatus = require('http-status');
 const catchAsync = require('../utils/catch-async');
 const CustomError = require('../utils/custom-error');
 const paypal = require('paypal-rest-sdk');
-
+const depositTitle='Deposit money into the system';
+const inwardType='IN';
+const outwardType='OUT';
 paypal.configure({
     'mode': 'sandbox', //sandbox or live
     'client_id': process.env.PAYPAL_CLIENT_ID,
@@ -10,30 +12,32 @@ paypal.configure({
 });
 
 const createPayment = catchAsync(async (req, res, next) => {
+    let transactionalMoney=req.body.transactionalMoney;
+
     const create_payment_json = {
         'intent': 'sale',
         'payer': {
             'payment_method': 'paypal',
         },
         'redirect_urls': {
-            'return_url': 'http://localhost:5000/api/paypal/success',
-            'cancel_url': 'http://localhost:5000/api/paypal/cancel',
+            'return_url': process.env.FE_DOMAIN+'/api/paypal/inward/success',
+            'cancel_url': process.env.FE_DOMAIN+'/api/paypal/inward/cancel',
         },
         'transactions': [{
             'item_list': {
                 'items': [{
-                    'name': 'Iphone 4S',
-                    'sku': '001',
-                    'price': '25.00',
+                    'name': depositTitle,
+                    'sku': '000',
+                    'price': transactionalMoney.toString(),
                     'currency': 'USD',
                     'quantity': 1,
                 }],
             },
             'amount': {
                 'currency': 'USD',
-                'total': '25.00',
+                'total': transactionalMoney.toString(),
             },
-            'description': 'Iphone 4S cũ giá siêu rẻ',
+            'description': 'Deposit money into the system with Paypal.',
         }],
     };
 
@@ -52,31 +56,38 @@ const createPayment = catchAsync(async (req, res, next) => {
 });
 
 const successPayment = catchAsync(async (req, res, next) => {
-    const payerId = req.query.PayerID;
-    const paymentId = req.query.paymentId;
+    const payerId = req.body.PayerID;
+    const paymentId = req.body.paymentId;
+    const accountId=req.user.id;
+    const transactionalMoney=req.body.transactionalMoney;
 
     const execute_payment_json = {
         'payer_id': payerId,
         'transactions': [{
             'amount': {
                 'currency': 'USD',
-                'total': '25.00',
+                'total': transactionalMoney.toString(),
             },
         }],
     };
     paypal.payment.execute(paymentId, execute_payment_json, function(error, payment) {
         if (error) {
             console.log(error.response);
-            throw error;
+            //throw error;
+            return next(new CustomError(httpStatus.BAD_REQUEST, ''));
+           
         } else {
             console.log(payment);
-            res.send('Success (Mua hàng thành công)');
+            //res.send('Nạp tiền thành công');
+
+            return res.status(httpStatus.OK).send({success: true})
         }
     });
 });
 
+//Don't need it (NMĐ)
 const cancelPayment = catchAsync(async (req, res, next) => {
-    res.send('Cancelled (Đơn hàng đã hủy)');
+    res.send('Transaction has been cancel');
 });
 
 module.exports = {
