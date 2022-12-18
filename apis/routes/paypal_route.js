@@ -10,17 +10,19 @@ const { paypal_controller } = require('../controllers');
 
 router.post(
     '/pay',
-    // passport.authenticate('jwt', { session: false }),
+    passport.authenticate('jwt', { session: false }),
     paypal_controller.createPayment,
 );
 
-router.get(
+router.post(
     '/success',
+    passport.authenticate('jwt', { session: false }),
     paypal_controller.successPayment
 )
 
 router.get(
     '/cancel',
+    passport.authenticate('jwt', { session: false }),
     paypal_controller.cancelPayment
 )
 
