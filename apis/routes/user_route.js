@@ -77,8 +77,8 @@ router.post(
  */
 router.get(
     '/search',
-    // passport.authenticate('jwt', { session: false }),
-    // authorize,
+    passport.authenticate('jwt', { session: false }),
+    authorize,
     userController.searchUser
 )
 
