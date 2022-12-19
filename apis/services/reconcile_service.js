@@ -1,4 +1,5 @@
 const Reconcile  = require('../models/reconcile_model');
+const User = require('../models/user_model');
 
 const createReconcile = async (rid, action, transactionalMoney, currencyUnit, type, owner ) => {
     console.log("Create reconcile");
@@ -14,6 +15,17 @@ const createReconcile = async (rid, action, transactionalMoney, currencyUnit, ty
     })
     return newReconcile.save();
 }
+
+const increaseMoney = async (accountId, amount) => {
+    const updatedUser=await User.findByIdAndUpdate(
+        accountId,
+        {
+            $inc: {accountBalance: amount}  // current value +amount
+        }
+    )
+    return updatedUser;
+};
+
 const getAllReconcile = async(owner)=>{
     // Reconcile.find({}, {
     //     'owner': ownerId,    // select keys to return here
@@ -34,5 +46,6 @@ const getAllReconcile = async(owner)=>{
 
 module.exports = {
     createReconcile,
-    getAllReconcile
+    getAllReconcile,
+    increaseMoney
 };

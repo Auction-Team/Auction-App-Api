@@ -63,6 +63,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         maxlength: 255,
     },
+    accountBalance: {
+        type: Number,
+        require:false,
+        default:0
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 });
