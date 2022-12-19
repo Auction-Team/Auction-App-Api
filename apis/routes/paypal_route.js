@@ -26,4 +26,10 @@ router.get(
     paypal_controller.cancelPayment
 )
 
+router.get(
+    '/all-transaction',
+    passport.authenticate('jwt', { session: false }),
+    paypal_controller.getAllTransaction
+)
+
 module.exports = router;
