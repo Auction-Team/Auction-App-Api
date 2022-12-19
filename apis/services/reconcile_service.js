@@ -2,7 +2,7 @@ const Reconcile  = require('../models/reconcile_model');
 
 const createReconcile = async (rid, action, transactionalMoney, currencyUnit, type, owner ) => {
     console.log("Create reconcile");
-    transactionalMoney=transactionalMoney+currencyUnit;
+    transactionalMoney=transactionalMoney+' '+currencyUnit;
     var createdDate = new Date();
     const newReconcile = new Reconcile({
         rid: rid, 
@@ -14,13 +14,22 @@ const createReconcile = async (rid, action, transactionalMoney, currencyUnit, ty
     })
     return newReconcile.save();
 }
-const getAllReconcile = async()=>{
-    return await Reconcile.findAll({ 
-        // Add order conditions here....
-        order: [
-            ['createdDate', 'DESC']
-        ]
-    });
+const getAllReconcile = async(owner)=>{
+    // Reconcile.find({}, {
+    //     'owner': ownerId,    // select keys to return here
+    // }, {sort: '-_id'}, function(err, reconciles) {
+    //     if(err!=null){
+    //         return error;
+    //     }
+    //     return reconciles;
+    // });
+
+    // return await Reconcile.find({},  { owner: ownerId }, {sort: {_id: -1}},async  (err, docs) => { 
+    //     if(err!=null){
+    //         throw error;
+    //     }
+    //     return docs; });
+    return await Reconcile.find({ owner });
 }
 
 module.exports = {

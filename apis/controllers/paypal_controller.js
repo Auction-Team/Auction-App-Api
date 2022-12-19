@@ -91,11 +91,16 @@ const successPayment = catchAsync(async (req, res, next) => {
 
 //Don't need it (NMĐ)
 const cancelPayment = catchAsync(async (req, res, next) => {
-    res.send('Transaction has been cancel');
+    res.send('Transaction has been canceled');
+});
+
+const getAllTransaction=catchAsync(async (req, res, next) => {
+    reconcileService.getAllReconcile(req.user.id);
 });
 
 module.exports = {
     createPayment,
     successPayment,
-    cancelPayment
+    cancelPayment,
+    getAllTransaction
 };

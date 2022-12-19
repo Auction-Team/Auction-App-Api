@@ -57,6 +57,12 @@ const deleteProduct = async (productId) => {
 }
 const getAllCategory = async()=>{
     //let buildSort = { name: 1};
+    // return Category.find({ 
+    // },{sort: {name: 1}},{project:({
+    //     _id: 1,
+    //     name: 2,
+    //     description: 3
+    // })});
     return await Category.find();
 }
 const getProductById = async (id) => {
