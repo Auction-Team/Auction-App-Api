@@ -78,7 +78,7 @@ const validate = require('../middlewares/validate');
 router.get(
     '/search',
     passport.authenticate('jwt', { session: false }),
-    authorize,
+    // authorize,
     categoryController.searchCategory
 )
 /**
