@@ -114,41 +114,6 @@ app.get(
 // middleWares handle error
 app.use(errorMiddleware);
 
-// const URI = process.env.DB_CONNECTION;
-// mongoose.connect(
-//     URI,
-//     {
-//         useNewUrlParser: true,
-//         useUnifiedTopology: true,
-//     },
-//     (err) => {
-//         if (err) throw err;
-//         console.log('Connected to mongodb');
-//     }
-// );
-// const dbHost = process.env.DB_HOST || 'localhost'
-// const dbPort = process.env.DB_PORT || 27017
-// const dbName = process.env.DB_NAME || 'my_db_name'
-// const dbUser = process.env.DB_USER
-// const dbUserPassword = process.env.DB_PASSWORD
-// const mongoUrl = `mongodb://myuser:myuserpass@127.0.0.1:27017/my_db`
-// console.log("mongoUrl", mongoUrl);
-// const connectWithRetry = function () {
-//     // when using with docker, at the time we up containers. Mongodb take few seconds to starting, during that time NodeJS server will try to connect MongoDB until success.
-//     return mongoose.connect(
-//         mongoUrl,
-//         { useNewUrlParser: true, useUnifiedTopology: true },
-//         (err) => {
-//             if (err) {
-//                 console.error(
-//                     'Failed to connect to mongo on startup - retrying in 5 sec',
-//                     err
-//                 );
-//                 setTimeout(connectWithRetry, 5000);
-//             }
-//         }
-//     )
-// };
 const URI = process.env.DB_CONNECTION;
 mongoose.connect(URI, {
     useNewUrlParser: true,

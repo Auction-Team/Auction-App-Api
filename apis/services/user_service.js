@@ -31,34 +31,36 @@ const searchUser = async (req) => {
     switch (params.multiSearchEnum) {
         case 'email':
             buildSearch = {
-                'email': { $regex: '.*' + params.keySearch + '.*', $options: 'i' },
+                $or: [
+                    { email: { $regex: '.*' + params.keySearch + '.*', $options: 'i' } },
+                ],
             };
             break;
         case 'fullName':
+            buildSearch = {
+                $or: [
+                    { fullName: { $regex: '.*' + params.keySearch + '.*', $options: 'i' } },
+                ],
+            };
             buildSearch = {
                 'fullName': { $regex: '.*' + params.keySearch + '.*', $options: 'i' },
             };
             break;
         default:
             buildSearch = {
-                'email': { $regex: '.*' + params.keySearch + '.*', $options: 'i' },
-                'fullName': { $regex: '.*' + params.keySearch + '.*', $options: 'i' },
+                $or: [
+                    { email: { $regex: '.*' + params.keySearch + '.*', $options: 'i' } },
+                    { fullName: { $regex: '.*' + params.keySearch + '.*', $options: 'i' } },
+                ],
             };
     }
-    const totalData = await User.aggregate().match({
-        $or: [
-            buildSearch,
-        ],
-    }).count('user_count').then((data) => {
+    const totalData = await User.aggregate().match(buildSearch)
+        .count('user_count').then((data) => {
         return data.length > 0 ? data[0].user_count : 0;
     });
     if (totalData > 0) {
         const result = await User.aggregate()
-            .match({
-                $or: [
-                    buildSearch,
-                ],
-            }).project({
+            .match(buildSearch).project({
                 _id: 1,
                 fullName: 2,
                 email: 3,
@@ -118,7 +120,7 @@ const createUser = async ({
         password: passwordHash,
         province,
         district,
-        ward
+        ward,
     });
 
     return newUser.save();

@@ -3,8 +3,16 @@ const catchAsync = require('../utils/catch-async');
 const CustomError = require('../utils/custom-error');
 const { productService } = require('../services');
 const { s3 } = require('../utils/upload');
+const mongoose = require('mongoose');
 
-
+// search all products
+const searchProducts = catchAsync(async (req, res, next) => {
+    const productList = await productService.searchProduct(req) || [];
+    return res.status(httpStatus.OK).json({
+        success: true,
+        productList
+    })
+})
 // sereach for user
 const getAllCategory = catchAsync(async (req, res, next) => {
     const categoryList = await productService.getAllCategory();
@@ -18,7 +26,7 @@ const updateProduct = catchAsync(async (req,res,next)=>{
     const { productId } = req.params;
     const oldProduct= await productService.getProductById(productId);
     console.log(oldProduct);
-    if(oldProduct==null||oldProduct.owner!=req.user.id){
+    if(oldProduct==null|| oldProduct.owner.toString() !== req.user.id){
         return next(new CustomError(httpStatus.NOT_FOUND, 'Product not exists'));
     }else{
         let currentDateTime=new Date();
@@ -27,7 +35,6 @@ const updateProduct = catchAsync(async (req,res,next)=>{
             if (!updatedProduct) {
                 return next(new CustomError(httpStatus.INTERNAL_SERVER_ERROR, 'Can not update produuct'));
             }
-            
             updatedProduct.mainImage = process.env.S3_LOCATION + updatedProduct.mainImage;
             updatedProduct.subImages=updatedProduct.subImages.map(function(item){
                 console.log(' product.subImages is: '+ item);
@@ -44,14 +51,12 @@ const updateProduct = catchAsync(async (req,res,next)=>{
 const deleteProduct = catchAsync(async (req,res,next)=>{
     try {
         const { productId } = req.params;
-        console.log(productId);
         const oldProduct= await productService.getProductById(productId);
-        console.log(oldProduct);
-        if(oldProduct==null||oldProduct.owner!=req.user.id){
+        if(!oldProduct || oldProduct.owner.toString() !== req.user.id){
             return next(new CustomError(httpStatus.NOT_FOUND, 'Product not exists'));
         }else{
             let currentDateTime=new Date();
-            if(oldProduct.startAuctionTime>=currentDateTime){
+            if(oldProduct.startAuctionTime >= currentDateTime){
                 const deletedFlag = await productService.deleteProduct(productId);
                 console.log(deletedFlag);
                 return res.status(httpStatus.OK).send({success: {
@@ -66,6 +71,7 @@ const deleteProduct = catchAsync(async (req,res,next)=>{
         res.status(500).json({ success: false, message: error.message });
     }
 })
+
 const createProduct = catchAsync(async (req, res,next) => {
     try {
         const newProduct = await productService.createProduct({...req.body},req.user.id);
@@ -113,10 +119,10 @@ const uploadProductImage = catchAsync(async (req, res, next) => {
         
         console.log("found product");
 
-        if (mainImageFlag!=null&&mainImageFlag==true)
+        if (mainImageFlag!=null && mainImageFlag === true)
         {
             console.log(product.mainImage);
-            if(product.mainImage!="product/default-image"){
+            if(product.mainImage !== "product/default-image"){
                 
                 console.log("delete main image");
                 const params = {
@@ -130,7 +136,7 @@ const uploadProductImage = catchAsync(async (req, res, next) => {
                 });
             }
         }else{
-            if(subImagesIndex!=null && subImagesIndex!=-1){
+            if(subImagesIndex!=null && subImagesIndex !== -1){
             console.log("delete sub image at"+ subImagesIndex);
             const productSubImageDelete=product.subImages[subImagesIndex];
             const params = {
@@ -146,10 +152,10 @@ const uploadProductImage = catchAsync(async (req, res, next) => {
         }
         
         console.log("store new data");
-        if(mainImageFlag!=null&&mainImageFlag==true){
+        if(mainImageFlag!=null&& mainImageFlag ===true){
             product.mainImage = req.file.key;
         }else{
-            if(subImagesIndex!=null && subImagesIndex!=-1){
+            if(subImagesIndex!=null && subImagesIndex !== -1){
                 product.subImages[subImagesIndex]=req.file.key;
             }else{
                 product.subImages.push(req.file.key);
@@ -175,4 +181,5 @@ module.exports = {
     getDetailProduct,
     uploadProductImage,
     getAllCategory,
+    searchProducts,
 };
