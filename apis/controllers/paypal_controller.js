@@ -83,6 +83,7 @@ const successPayment = catchAsync(async (req, res, next) => {
             console.log(payment);
             var rid=randomUUID()+new Date().toISOString().replace(/:/g, '-');
             //res.send('Nạp tiền thành công');
+            reconcileService.increaseMoney(accountId,transactionalMoney);
             reconcileService.createReconcile(rid,depositTitle,transactionalMoney,'USD',inwardType,accountId);
             return res.status(httpStatus.OK).send({success: true});
         }
