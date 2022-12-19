@@ -5,7 +5,8 @@ const CustomError = require('../utils/custom-error');
 const sendEmail = require('../utils/send_email');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
-const {getProvinces} = require('sub-vn')
+const { getProvinces } = require('sub-vn');
+const http = require('http');
 
 // Login user
 const login = catchAsync(async (req, res, next) => {
@@ -15,7 +16,7 @@ const login = catchAsync(async (req, res, next) => {
         return next(new CustomError(httpStatus.NOT_FOUND, 'Email not exists'));
     if (!(await userService.comparePassword(password, user.password)))
         return next(
-            new CustomError(httpStatus.BAD_REQUEST, 'Password not correct')
+            new CustomError(httpStatus.BAD_REQUEST, 'Password not correct'),
         );
 
     await tokenService.sendToken(user._id, res);
@@ -40,7 +41,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
     const user = await userService.checkEmailExists(email);
     if (!user)
         return next(
-            new CustomError(httpStatus.BAD_REQUEST, 'Email is not exists')
+            new CustomError(httpStatus.BAD_REQUEST, 'Email is not exists'),
         );
 
     // Get rest token
@@ -50,7 +51,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
 
     // Create reset password url
     const resetUrl = `${req.protocol}://${req.get(
-        'host'
+        'host',
     )}/api/auth/password/reset/${resetToken}`;
 
     const message = `Your password reset token is as follow:\n\n${resetUrl}\n\nIf you have not requested this email, then ignore it.`;
@@ -64,15 +65,14 @@ const forgotPassword = catchAsync(async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            message: `Email sent to: ${user.email}`,     
+            message: `Email sent to: ${user.email}`,
         });
     } catch (error) {
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
         await user.save({ validateBeforeSave: false });
-
         return next(
-            new CustomError(httpStatus.INTERNAL_SERVER_ERROR, error.message)
+            new CustomError(httpStatus.INTERNAL_SERVER_ERROR, error.message),
         );
     }
 });
@@ -86,13 +86,13 @@ const resetPassword = catchAsync(async (req, res, next) => {
         return next(
             new CustomError(
                 httpStatus.BAD_REQUEST,
-                'Password reset token is invalid or has been expired'
-            )
+                'Password reset token is invalid or has been expired',
+            ),
         );
 
     if (password !== confirmPassword)
         return next(
-            new CustomError(httpStatus.BAD_REQUEST, 'Password does not match')
+            new CustomError(httpStatus.BAD_REQUEST, 'Password does not match'),
         );
 
     // Set up new password
@@ -111,7 +111,7 @@ const refreshToken = catchAsync(async (req, res, next) => {
     const { refresh_token } = req.cookies;
     if (!refresh_token)
         return next(new CustomError(httpStatus.BAD_REQUEST, 'Please logging'));
-    await  tokenService.getAccessTokenByRefreshToken(refresh_token, res);
+    await tokenService.getAccessTokenByRefreshToken(refresh_token, res);
 });
 
 const logout = catchAsync(async (req, res, next) => {
@@ -147,10 +147,11 @@ const changePassword = catchAsync(async (req, res, next) => {
     const { oldPassword, newPassword } = req.body;
     const user = await userService.getUserById(id);
     const isMatchPassword = await bcrypt.compare(oldPassword, user.password);
-    if (isMatchPassword) {
-        user.password = await bcrypt.hash(newPassword, 10);
-        user.save();
+    if (!isMatchPassword) {
+        return next(new CustomError(httpStatus.BAD_REQUEST, 'Password incorrect'));
     }
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
     return res.status(httpStatus.OK).json({
         success: true,
         message: 'Change password successfully',
@@ -158,10 +159,10 @@ const changePassword = catchAsync(async (req, res, next) => {
 });
 
 const secret = (req, res, next) => {
-    const testData = getProvinces()
+    const testData = getProvinces();
     return res.status(httpStatus.OK).json({
         success: true,
-        testData
+        testData,
     });
 };
 
