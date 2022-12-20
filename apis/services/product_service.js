@@ -84,6 +84,7 @@ const searchProduct = async (req) => {
                 endAuctionTime: 6,
                 quantity: 7,
                 quantityUnit: 8,
+                startingPrice: 9,
                 categoryName: '$categoryList.name',
                 owner: '$userOwner.fullName',
             })
@@ -140,7 +141,6 @@ const updateProduct = async (productId, {
     endAuctionTime,
     category,
 }) => {
-    console.log('Update product');
     const updatedProduct = await Product.findByIdAndUpdate(
         productId,
         {
