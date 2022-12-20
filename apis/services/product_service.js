@@ -58,24 +58,23 @@ const searchProduct = async (req) => {
     ).count('product_count').then((data) => {
         return data.length > 0 ? data[0].product_count : 0;
     });
-    console.log(totalData);
     if (totalData > 0) {
         const result = await Product.aggregate()
             .match(buildSearch)
             .lookup({
-                from: "categories",
-                localField: "category",
-                foreignField: "_id",
-                as: "categoryList"
+                from: 'categories',
+                localField: 'category',
+                foreignField: '_id',
+                as: 'categoryList',
             })
-            .unwind("$categoryList")
+            .unwind('$categoryList')
             .lookup({
-                from: "users",
-                localField: "owner",
-                foreignField: "_id",
-                as: "userOwner"
+                from: 'users',
+                localField: 'owner',
+                foreignField: '_id',
+                as: 'userOwner',
             })
-            .unwind("userOwner")
+            .unwind('userOwner')
             .project({
                 _id: 1,
                 auctionName: 2,
@@ -85,105 +84,112 @@ const searchProduct = async (req) => {
                 endAuctionTime: 6,
                 quantity: 7,
                 quantityUnit: 8,
-                categoryName:'$categoryList.name',
-                owner: '$userOwner.fullName'
+                categoryName: '$categoryList.name',
+                owner: '$userOwner.fullName',
             })
             .sort(buildSort)
             .skip(offset)
             .limit(limit) || [];
+        console.log(result);
+        const listProduct = result.map((product) => {
+            product.mainImage = process.env.S3_LOCATION + product.mainImage;
+            return product;
+        });
+
         return {
             totalData,
-            datas: result,
+            datas: listProduct,
         };
     }
-}
-    const createProduct = async ({
-                                     auctionName,
-                                     description,
-                                     quantity,
-                                     quantityUnit,
-                                     startingPrice,
-                                     startAuctionTime,
-                                     endAuctionTime,
-                                     category,
-                                 }, id) => {
-        console.log('Create product');
-        const mainImage = 'product/default-image.png';
-        const subImages = [];
-        const newProduct = new Product({
+};
+const createProduct = async ({
+                                 auctionName,
+                                 description,
+                                 quantity,
+                                 quantityUnit,
+                                 startingPrice,
+                                 startAuctionTime,
+                                 endAuctionTime,
+                                 category,
+                             }, id) => {
+    console.log('Create product');
+    const mainImage = 'product/default-image.png';
+    const subImages = [];
+    const newProduct = new Product({
+        auctionName: auctionName,
+        description: description,
+        quantity: quantity,
+        quantityUnit: quantityUnit,
+        mainImage: mainImage,
+        subImages: subImages,
+        startingPrice: startingPrice,
+        startAuctionTime: startAuctionTime,
+        endAuctionTime: endAuctionTime,
+        category: category,
+        owner: id,
+    });
+    return newProduct.save();
+};
+const updateProduct = async (productId, {
+    auctionName,
+    description,
+    quantity,
+    quantityUnit,
+    startingPrice,
+    startAuctionTime,
+    endAuctionTime,
+    category,
+}) => {
+    console.log('Update product');
+    const updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        {
             auctionName: auctionName,
             description: description,
             quantity: quantity,
             quantityUnit: quantityUnit,
-            mainImage: mainImage,
-            subImages: subImages,
             startingPrice: startingPrice,
             startAuctionTime: startAuctionTime,
             endAuctionTime: endAuctionTime,
             category: category,
-            owner: id,
-        });
-        return newProduct.save();
-    };
-    const updateProduct = async (productId, {
-        auctionName,
-        description,
-        quantity,
-        quantityUnit,
-        startingPrice,
-        startAuctionTime,
-        endAuctionTime,
-        category,
-    }) => {
-        console.log('Update product');
-        const updatedProduct = await Product.findByIdAndUpdate(
-            productId,
-            {
-                auctionName: auctionName,
-                description: description,
-                quantity: quantity,
-                quantityUnit: quantityUnit,
-                startingPrice: startingPrice,
-                startAuctionTime: startAuctionTime,
-                endAuctionTime: endAuctionTime,
-                category: category,
-            },
-            { new: true },
-        );
+        },
+        { new: true },
+    );
 
-        return updatedProduct;
-    };
-    const deleteProduct = async (productId) => {
-        console.log('Delete product');
+    return updatedProduct;
+};
+const deleteProduct = async (productId) => {
+    console.log('Delete product');
 
-        const deletedProduct = await Product.findByIdAndUpdate(
-            productId,
-            {
-                deletedFlag: true,
-            },
-            { new: true },
-        );
-        return deletedProduct.deletedFlag;
-    };
-    const getAllCategory = async () => {
-        //let buildSort = { name: 1};
-        return Category.find();
-    };
-    const getProductById = async (id) => {
-        const product = Product.findById(id);
-        console.log(product.deletedFlag);
-        if (product.deletedFlag != null && product.deletedFlag !== false) {
-            return null;
-        } else {
-            return product;
-        }
-    };
+    const deletedProduct = await Product.findByIdAndUpdate(
+        productId,
+        {
+            deletedFlag: true,
+        },
+        { new: true },
+    );
+    return deletedProduct.deletedFlag;
+};
+const getAllCategory = async () => {
+    //let buildSort = { name: 1};
+    return Category.find();
+};
+const getProductById = async (id) => {
+    const product = Product.findById(id);
+    console.log(product.deletedFlag);
+    if (product.deletedFlag != null && product.deletedFlag !== false) {
+        return null;
+    } else {
+        return product;
+    }
+};
 
-    module.exports = {
-        createProduct,
-        getProductById,
-        getAllCategory,
-        updateProduct,
-        deleteProduct,
-        searchProduct,
-    };;
+module.exports = {
+    createProduct,
+    getProductById,
+    getAllCategory,
+    updateProduct,
+    deleteProduct,
+    searchProduct,
+};
+;
