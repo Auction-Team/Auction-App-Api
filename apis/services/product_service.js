@@ -2,8 +2,11 @@ const Product = require('../models/product_model');
 const Category = require('../models/category_model');
 const User = require('../models/user_model');
 const { build } = require('joi');
+const {ObjectId} = require('mongodb'); 
 
-
+const searchOwnerProduct = async (req) => {
+    return await Product.find({ owner:req.user.id });
+}
 const searchProduct = async (req) => {
     const { keySearch, multiSearchEnum, page, size, sort } = req.query;
     let buildSearch = {};
@@ -186,4 +189,5 @@ const searchProduct = async (req) => {
         updateProduct,
         deleteProduct,
         searchProduct,
+        searchOwnerProduct
     };;

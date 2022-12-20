@@ -157,6 +157,35 @@ router.get(
 
 /**
  * @swagger
+ * tags:
+ *   name: Product
+ *   description: The product managing API
+ */
+
+/**
+ * @swagger
+ * /api/product/my/search:
+ *   get:
+ *     summary: Get my product list
+ *     tags: [Product]
+ *     parameters:
+ *     responses:
+ *       200:
+ *         description: Upload images successfully
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal Server Error
+ *
+ */
+router.get(
+    '/my/search',
+    passport.authenticate('jwt', { session: false }),
+    productController.searchOwnerProducts
+)
+
+/**
+ * @swagger
  * /api/product/category/list:
  *  get:
  *      summary: Get category
