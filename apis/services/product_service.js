@@ -108,7 +108,7 @@ const searchProduct = async (req) => {
                                      category,
                                  }, id) => {
         console.log('Create product');
-        const mainImage = 'product/default-image';
+        const mainImage = 'product/default-image.png';
         const subImages = [];
         const newProduct = new Product({
             auctionName: auctionName,

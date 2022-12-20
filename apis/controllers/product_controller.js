@@ -122,7 +122,7 @@ const uploadProductImage = catchAsync(async (req, res, next) => {
         if (mainImageFlag!=null && mainImageFlag === true)
         {
             console.log(product.mainImage);
-            if(product.mainImage !== "product/default-image"){
+            if(product.mainImage !== "product/default-image.png"){
                 
                 console.log("delete main image");
                 const params = {
