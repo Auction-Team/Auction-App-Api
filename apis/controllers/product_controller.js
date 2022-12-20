@@ -14,6 +14,15 @@ const searchProducts = catchAsync(async (req, res, next) => {
     })
 })
 // sereach for user
+// search all products by user(owner)
+const searchOwnerProducts = catchAsync(async (req, res, next) => {
+    const productList = await productService.searchOwnerProduct(req) || [];
+    return res.status(httpStatus.OK).json({
+        success: true,
+        productList
+    })
+})
+
 const getAllCategory = catchAsync(async (req, res, next) => {
     const categoryList = await productService.getAllCategory();
     console.log(categoryList);
@@ -182,4 +191,5 @@ module.exports = {
     uploadProductImage,
     getAllCategory,
     searchProducts,
+    searchOwnerProducts
 };
