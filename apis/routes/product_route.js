@@ -157,21 +157,13 @@ router.get(
 
 /**
  * @swagger
- * tags:
- *   name: Product
- *   description: The product managing API
- */
-
-/**
- * @swagger
  * /api/product/my/search:
  *   get:
- *     summary: Get my product list
+ *     summary: Search product list
  *     tags: [Product]
- *     parameters:
  *     responses:
  *       200:
- *         description: Upload images successfully
+ *         description: My search productsuccessfully
  *       400:
  *         description: Bad request
  *       500:

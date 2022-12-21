@@ -4,16 +4,15 @@ const User = require('../models/user_model');
 const { build } = require('joi');
 
 const searchOwnerProduct = async (req) => {
-    const result = await Product.find({ owner:req.user.id });
+    const result = await Product.find({ owner: req.user.id });
     const listProduct = result.map((product) => {
         product.mainImage = process.env.S3_LOCATION + product.mainImage;
         return product;
     });
     return {
-        totalData,
         datas: listProduct,
     };
-}
+};
 const searchProduct = async (req) => {
     const { keySearch, multiSearchEnum, page, size, sort } = req.query;
     let buildSearch = {};
@@ -194,12 +193,12 @@ const getProductById = async (id) => {
     }
 };
 
-    module.exports = {
-        createProduct,
-        getProductById,
-        getAllCategory,
-        updateProduct,
-        deleteProduct,
-        searchProduct,
-        searchOwnerProduct
-    };;
+module.exports = {
+    createProduct,
+    getProductById,
+    getAllCategory,
+    updateProduct,
+    deleteProduct,
+    searchProduct,
+    searchOwnerProduct,
+};

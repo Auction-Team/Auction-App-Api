@@ -20,20 +20,29 @@ const swaggerUI = require('swagger-ui-express');
 
 const swaggerJsDoc = require('swagger-jsdoc');
 
-const ejs = require('ejs');
+const SocketServer = require('./socketServer')
+
+const {ExpressPeerServer} = require('peer')
+
 
 const app = express();
-app.use(cors({
-    origin: '*',
-}));
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true}));
 app.use(cookieParser());
-app.set('view engine', 'ejs');
-app.get('/',(req,res) => res.render('index'))
-// Custom swagger
 
-// custom option swagger
+// Socket
+const http = require('http').createServer(app)
+const io = require('socket.io')(http)
+
+io.on('connection', socket => {
+    console.log(socket.id + "connected")
+    SocketServer(socket)
+})
+
+// Create peer server
+ExpressPeerServer(http, {path: '/'})
+
+// // custom option swagger
 options = {
     definition: {
         openapi: '3.0.1',
@@ -94,6 +103,8 @@ app.use(passport.initialize());
 
 app.use(passport.session());
 
+
+
 // Oauth Google
 app.get(
     '/auth/google',
@@ -123,10 +134,13 @@ mongoose.connect(URI, {
     console.log('Connected to mongodb');
 });
 
-// connectWithRetry()
 
+
+// connectWithRetry()
 const port = process.env.PORT || 5000;
 
-app.listen(port, () => {
+http.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+

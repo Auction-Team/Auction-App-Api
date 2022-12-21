@@ -16,10 +16,15 @@ const searchProducts = catchAsync(async (req, res, next) => {
 // sereach for user
 // search all products by user(owner)
 const searchOwnerProducts = catchAsync(async (req, res, next) => {
+    console.log('my search product')
     const productList = await productService.searchOwnerProduct(req) || [];
     return res.status(httpStatus.OK).json({
         success: true,
         productList
+    })
+    return res.status(httpStatus.OK).json({
+        success: true,
+        message: 'API My Search'
     })
 })
 

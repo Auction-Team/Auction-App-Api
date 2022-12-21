@@ -14,6 +14,14 @@ const searchUser = catchAsync(async (req, res, next) => {
     });
 });
 
+// update profile user
+const updateProfileUser = catchAsync(async (req, res, next) => {
+    return res.status(httpStatus.OK).json({
+        success: true,
+        message: 'API Update Profile User'
+    })
+})
+
 // upload profile user
 const uploadImageUserProfile = catchAsync(async (req, res, next) => {
     try {
@@ -45,4 +53,5 @@ const uploadImageUserProfile = catchAsync(async (req, res, next) => {
 module.exports = {
     uploadImageUserProfile,
     searchUser,
+    updateProfileUser
 };
