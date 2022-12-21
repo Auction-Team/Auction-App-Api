@@ -2,12 +2,14 @@ const httpStatus = require('http-status');
 const catchAsync = require('../utils/catch-async');
 const CustomError = require('../utils/custom-error');
 const paypal = require('paypal-rest-sdk');
-const { reconcileService } = require('../services');
+const { reconcileService,userService, withdrawService } = require('../services');
 const { randomUUID } = require('crypto'); 
 
 const depositTitle='Deposit money into the system';
 const inwardType='IN';
 const outwardType='OUT';
+const base = "https://api-m.sandbox.paypal.com";
+
 paypal.configure({
     'mode': 'sandbox', //sandbox or live
     'client_id': process.env.PAYPAL_CLIENT_ID,
@@ -98,10 +100,138 @@ const cancelPayment = catchAsync(async (req, res, next) => {
 const getAllTransaction=catchAsync(async (req, res, next) => {
     reconcileService.getAllReconcile(req.user.id);
 });
+const withdrawMoney=catchAsync(async (req, res, next) => {
+    // const accountId=req.user.id;
+    const adminId=req.user.id;
+    const adminAccount= await userService.getUserById(adminId);
+    if(adminAccount==null ||(adminAccount!=null&& adminAccount.role!='admin')){
+        res.status(403);
+    }
+    const {withdrawId}=req.body;
+    const withdrawRequest=await withdrawService.getWithDrawRequestInfo(withdrawId);
+    const accountId=withdrawRequest.user;
+    const account= await userService.getUserById(accountId);
+    const transactionalMoney = req.body.transactionalMoney;
+    console.log('email receive address:'+account.email);
+    if(account==null){
+        res.status(400).json({ success: false, message: 'Account is not found' });
+    }
+    const accessToken = await generateAccessToken();
+    const url = `${base}/v2/checkout/orders`;
+    const response = await fetch(url, {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        "PayPal-Request-Id" : randomUUID()
+      },
+      body: JSON.stringify({
+        intent: "CAPTURE",
+        application_context: {
+            "user_action":"PAY_NOW",
+            "return_url": process.env.FE_DOMAIN+"/api/paypal/outward/success?withdrawId="+withdrawId,
+            "cancel_url": process.env.FE_DOMAIN+"/api/paypal/outward/cancel"
+        },
+        purchase_units: [
+          {
+            amount: {
+              currency_code: "USD",
+              value: transactionalMoney.toString(),
+            },
+            payee: {
+                email_address: account.email
+            }
+          },
+        ],
+        payment_source: {
+            paypal: {
+                payer:{
+                    name: { given_name: 'Auction', surname: 'Company' },
+                    email_address: 'nhanphanphoi01@gmail.com',
+                    payer_id: '4JNHA9ASFU7T6',
+                    address: { country_code: 'US' }
+                }
+            }
+        }
+      }),
+    })
+    // .then(result => {
+    //     //Here body is not ready yet, throw promise
+    //     if (!result.ok) throw result;
+    //     console.log('Result: '+result.json());
+    //     return result.json();
+    // })
+    // .then(result => {
+    //     //Successful request processing
+    //     // console.log(result);
+    //     for (let i = 0; i < payment.links.length; i++) {
+    //         if (payment.links[i].rel === 'approval_url') {
+    //             res.redirect(payment.links[i].href);
+    //         }
+    //     }
+    // }).catch(error => {
+    //     //Here is still promise
+    //     console.log(error);
+    //     error.json().then((body) => {
+    //         //Here is already the payload from API
+    //         console.log(body);
+    //         res.status(500).json({ success: false, message: 'Server error' });
+    
+    //     });
+    // })
+    const data = await response.json();
+    console.log(data);
+    if(data!=null){
+        //update order id to withdraw request
+        await withdrawService.updateOrderForWithDraw(withdrawId,data.id);
+        for (let i = 0; i < data.links.length; i++) {
+            if (data.links[i].rel === 'payer-action') {
+                    res.redirect(data.links[i].href);
+                }
+        }
+    }else{
+        return next(new CustomError(httpStatus.INTERNAL_SERVER_ERROR, 'Payment error'));
+    }
+});
+  
+const capturePaymentOrder=catchAsync(async (req, res, next) => {
+    const { withdrawId } = req.body;
+    const withdrawRequest=await withdrawService.getWithDrawRequestInfo(withdrawId);
+    const orderId=withdrawRequest.orderId;
+    const accessToken = await generateAccessToken();
+    console.log('Order id: '+orderId +'\naccessToken:'+accessToken);
+    const url = `${base}/v2/checkout/orders/${orderId}/capture`;
+    const response = await fetch(url, {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const data = await response.json();
+    //if success - minus account balance and create reconcile
+    console.log(data);
+    return data;
+  })
+  
+  async function generateAccessToken() {
+    const response = await fetch(base + "/v1/oauth2/token", {
+      method: "post",
+      body: "grant_type=client_credentials",
+      headers: {
+        Authorization:
+          "Basic " + Buffer.from(process.env.PAYPAL_CLIENT_ID + ":" + process.env.PAYPAL_CLIENT_SECRET).toString("base64"),
+      },
+    });
+    const data = await response.json();
+    return data.access_token;
+  }
 
 module.exports = {
     createPayment,
     successPayment,
     cancelPayment,
-    getAllTransaction
+    getAllTransaction,
+    withdrawMoney,
+    capturePaymentOrder
 };

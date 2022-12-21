@@ -10,8 +10,20 @@ const { paypal_controller } = require('../controllers');
 
 router.post(
     '/pay',
-    //passport.authenticate('jwt', { session: false }),
+    passport.authenticate('jwt', { session: false }),
     paypal_controller.createPayment,
+);
+
+router.post(
+    '/withdraw',
+    passport.authenticate('jwt', { session: false }),
+    paypal_controller.withdrawMoney,
+);
+
+router.get(
+    '/capture-order',
+    passport.authenticate('jwt', { session: false }),
+    paypal_controller.capturePaymentOrder,
 );
 
 router.post(

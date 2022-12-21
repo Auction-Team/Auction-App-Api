@@ -26,7 +26,7 @@ const increaseMoney = async (accountId, amount) => {
     return updatedUser;
 };
 
-const getAllReconcile = async(owner)=>{
+const getAllReconcile = async(ownerId)=>{
     // Reconcile.find({}, {
     //     'owner': ownerId,    // select keys to return here
     // }, {sort: '-_id'}, function(err, reconciles) {
@@ -41,7 +41,7 @@ const getAllReconcile = async(owner)=>{
     //         throw error;
     //     }
     //     return docs; });
-    return await Reconcile.find({ owner });
+    return await Reconcile.findOne({ owner:ownerId });
 }
 
 module.exports = {

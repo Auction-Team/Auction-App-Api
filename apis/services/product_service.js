@@ -9,10 +9,7 @@ const searchOwnerProduct = async (req) => {
         product.mainImage = process.env.S3_LOCATION + product.mainImage;
         return product;
     });
-    return {
-        totalData,
-        datas: listProduct,
-    };
+    return listProduct;
 }
 const searchProduct = async (req) => {
     const { keySearch, multiSearchEnum, page, size, sort } = req.query;
