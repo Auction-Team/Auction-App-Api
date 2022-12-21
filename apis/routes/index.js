@@ -10,6 +10,7 @@ const addressRoute = require('./address_route');
 const categoryRoute = require('./category_route');
 const cartRoute = require('./cart_route');
 const invoiceRoute = require('./invoice_route');
+const auctionPaymentRoute = require('./auction_payment_route');
 //Routes
 router.use('/auth', authRoute);
 router.use('/user', userRoute);
@@ -19,4 +20,5 @@ router.use('/address', addressRoute);
 router.use('/category', categoryRoute);
 router.use('/cart', cartRoute);
 router.use('/invoice', invoiceRoute);
+router.use('/auction/payment', auctionPaymentRoute);
 module.exports = router;

@@ -98,7 +98,11 @@ const cancelPayment = catchAsync(async (req, res, next) => {
 });
 
 const getAllTransaction=catchAsync(async (req, res, next) => {
-    reconcileService.getAllReconcile(req.user.id);
+    const reconcileList=await reconcileService.getAllReconcile(req.user.id);
+    return res.status(httpStatus.OK).json({
+        success: true,
+        reconcileList
+    })
 });
 const withdrawMoney=catchAsync(async (req, res, next) => {
     // const accountId=req.user.id;
@@ -209,7 +213,7 @@ const capturePaymentOrder=catchAsync(async (req, res, next) => {
       },
     });
     const data = await response.json();
-    //if success - minus account balance and create reconcile
+    //TODO: if success - minus account balance and create reconcile
     console.log(data);
     return data;
   })

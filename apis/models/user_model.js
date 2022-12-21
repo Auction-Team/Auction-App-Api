@@ -68,6 +68,11 @@ const userSchema = new mongoose.Schema({
         require:false,
         default:0
     },
+    availableBalance: {
+        type: Number,
+        require:false,
+        default:0
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 });
