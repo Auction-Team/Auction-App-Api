@@ -20,13 +20,14 @@ const increaseMoney = async (accountId, amount) => {
     const updatedUser=await User.findByIdAndUpdate(
         accountId,
         {
-            $inc: {accountBalance: amount}  // current value +amount
+            $inc: {accountBalance: amount},  // current value +amount
+            $inc: {availableBalance: amount}  // current value +amount
         }
     )
     return updatedUser;
 };
 
-const getAllReconcile = async(owner)=>{
+const getAllReconcile = async(ownerId)=>{
     // Reconcile.find({}, {
     //     'owner': ownerId,    // select keys to return here
     // }, {sort: '-_id'}, function(err, reconciles) {
@@ -41,7 +42,7 @@ const getAllReconcile = async(owner)=>{
     //         throw error;
     //     }
     //     return docs; });
-    return await Reconcile.find({ owner });
+    return await Reconcile.find({ owner:ownerId });
 }
 
 module.exports = {

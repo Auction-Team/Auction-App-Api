@@ -6,3 +6,5 @@ module.exports.reconcileService = require('./reconcile_service');
 module.exports.categoryService = require('./category_service');
 module.exports.cartService = require('./cart_service');
 module.exports.invoiceService = require('./invoice_service');
+module.exports.withdrawService = require('./withdraw_service');
+module.exports.auctionPaymentService = require('./auction_payment_service');

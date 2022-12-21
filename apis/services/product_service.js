@@ -4,15 +4,13 @@ const User = require('../models/user_model');
 const { build } = require('joi');
 
 const searchOwnerProduct = async (req) => {
-    const result = await Product.find({ owner: req.user.id });
+    const result = await Product.find({ owner:req.user.id });
     const listProduct = result.map((product) => {
         product.mainImage = process.env.S3_LOCATION + product.mainImage;
         return product;
     });
-    return {
-        datas: listProduct,
-    };
-};
+    return listProduct;
+}
 const searchProduct = async (req) => {
     const { keySearch, multiSearchEnum, page, size, sort } = req.query;
     let buildSearch = {};
@@ -93,7 +91,6 @@ const searchProduct = async (req) => {
                 endAuctionTime: 6,
                 quantity: 7,
                 quantityUnit: 8,
-                startingPrice: 9,
                 categoryName: '$categoryList.name',
                 owner: '$userOwner.fullName',
             })
@@ -150,6 +147,7 @@ const updateProduct = async (productId, {
     endAuctionTime,
     category,
 }) => {
+    console.log('Update product');
     const updatedProduct = await Product.findByIdAndUpdate(
         productId,
         {
@@ -193,12 +191,12 @@ const getProductById = async (id) => {
     }
 };
 
-module.exports = {
-    createProduct,
-    getProductById,
-    getAllCategory,
-    updateProduct,
-    deleteProduct,
-    searchProduct,
-    searchOwnerProduct,
-};
+    module.exports = {
+        createProduct,
+        getProductById,
+        getAllCategory,
+        updateProduct,
+        deleteProduct,
+        searchProduct,
+        searchOwnerProduct
+    };;

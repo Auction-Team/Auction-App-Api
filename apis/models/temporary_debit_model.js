@@ -6,7 +6,15 @@ const temporaryDebitModel = new mongoose.Schema({
         required:true
     },
     auctionMoney:{
-        type:String,
+        type:Number,
+        require: true
+    },
+    shipFee:{
+        type:Number,
+        require: true
+    },
+    auctionFee:{
+        type:Number,
         require: true
     },
     owner: {
