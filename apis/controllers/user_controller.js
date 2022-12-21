@@ -4,6 +4,7 @@ const catchAsync = require('../utils/catch-async');
 const CustomError = require('../utils/custom-error');
 const { s3 } = require('../utils/upload');
 const mongoose = require('mongoose');
+const User = require('../models/user_model')
 
 // sereach for user
 const searchUser = catchAsync(async (req, res, next) => {
@@ -16,9 +17,24 @@ const searchUser = catchAsync(async (req, res, next) => {
 
 // update profile user
 const updateProfileUser = catchAsync(async (req, res, next) => {
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const {firstName, lastName, province, district, ward} = req.body
+    const userById = await User.findById(userId);
+    if(!userById)
+        return next(new CustomError(httpStatus.BAD_REQUEST, 'User not found'))
+    const fullName = firstName + ' ' + lastName
+    userById.firstName = firstName;
+    userById.lastName = lastName;
+    userById.fullName = fullName;
+    userById.province = province;
+    userById.district = district || userById.district
+    userById.province = province || userById.province
+    userById.ward = ward || userById.ward
+    await userById.save()
+    userById.password = ''
     return res.status(httpStatus.OK).json({
         success: true,
-        message: 'API Update Profile User'
+        userById
     })
 })
 

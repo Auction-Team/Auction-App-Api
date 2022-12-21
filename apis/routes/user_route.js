@@ -10,6 +10,10 @@ const passportConfig = require('../middlewares/passport');
 
 const { uploadImageUser, s3 } = require('../utils/upload');
 
+const { userValidation } = require('../validations');
+
+const validate = require('../middlewares/validate');
+
 const authorize = require('../middlewares/authorize')
 /**
  * @swagger
@@ -80,6 +84,54 @@ router.get(
     passport.authenticate('jwt', { session: false }),
     authorize,
     userController.searchUser
+)
+
+/**
+ * @swagger
+ * /api/user/update/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *              firstName:
+ *                  type: string
+ *              lastName:
+ *                  type: string
+ *              province:
+ *                  type: string
+ *              district:
+ *                  type: string
+ *              ward:
+ *                  type: string
+ *             required:
+ *                 - firstName
+ *                 - lastName
+ *             examples:
+ *                  firstName: doe
+ *                  lastName: Join
+ *                  province: Thành phố hồ chí minh
+ *                  district: Cách mạng tháng 8
+ *                  ward: Đường Lê Thị Hoa
+ *     responses:
+ *       200:
+ *         description: Upload images successfully
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal Server Error
+ *
+ */
+router.put(
+    '/update/profile',
+    passport.authenticate('jwt', { session: false }),
+    validate(userValidation.updateProfileSchema),
+    userController.updateProfileUser
 )
 
 module.exports = router;
