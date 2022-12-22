@@ -40,10 +40,15 @@ const placeBid = catchAsync(async (req, res,next) => {
 
 const placeNewBid = catchAsync(async (req, res,next) => {
     try {
-        const {productId}=req.body;
+        const {productId, auctionMoney}=req.body;
         const temporyDebit = await auctionPaymentService.getTemporyDebitByAccountAndProduct(req.user.id,productId);
+        const product=await productService.getProductById(productId);
         if(temporyDebit==null){
             res.status(400).json({ success: false, message: 'Not found old bid!'});
+        }
+        
+        if(auctionMoney<product.startingPrice){
+            res.status(400).json({ success: false, message: 'This product cannot be auctioned for less than the starting price' });
         }
         const newTemporyDebit=await auctionPaymentService.updateTemporyDebit({...req.body},req.user.id);
         if(newTemporyDebit=='NOT_ENOUGH_AVAILABLE_MONEY'){
