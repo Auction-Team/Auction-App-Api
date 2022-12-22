@@ -22,10 +22,6 @@ const searchOwnerProducts = catchAsync(async (req, res, next) => {
         success: true,
         productList
     })
-    return res.status(httpStatus.OK).json({
-        success: true,
-        message: 'API My Search'
-    })
 })
 
 const getAllCategory = catchAsync(async (req, res, next) => {

@@ -4,7 +4,10 @@ const User = require('../models/user_model');
 const { build } = require('joi');
 
 const searchOwnerProduct = async (req) => {
-    const result = await Product.find({ owner:req.user.id });
+    const result = await Product.find({
+        owner:req.user.id ,
+        deleteFlag: false
+    });
     const listProduct = result.map((product) => {
         product.mainImage = process.env.S3_LOCATION + product.mainImage;
         return product;
