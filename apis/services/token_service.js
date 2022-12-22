@@ -69,7 +69,7 @@ const sendToken = async (id, res) => {
 
     const refresh_token = generateRefreshToken(id);
 
-    saveToken(id, access_token);
+    await saveToken(id, access_token);
 
     // Options for cookie refresh token
     const optionsRefreshToken = {
