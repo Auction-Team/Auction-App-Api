@@ -1,19 +1,21 @@
 const TemporaryDebit  = require('../models/temporary_debit_model');
 const {userService}=require('../services');
-let shipFeeMatrix = { 'Quận 9': { 'Quận 9': 1, 'Quận 3': 2 }, 'Quận 3': { 'Quận 9': 2, 'Quận 3': 1 } };
+const User = require('../models/user_model');
+let shipFeeMatrix = { 'Quận 9': { 'Quận 1': 1.632, 'Quận 2': 1.376, 'Quận 3': 1.68, 'Quận 4':1.808, 'Quận 5':2.032,'Quận 6':2.456,'Quận 7':2.016,'Quận 8':2.808,'Quận 9':0,'Quận 10':1.96,'Quận 11':2.048,'Quận 12':1.856,'Quận Tân Bình':1.896,'Quận Phú Nhuận': 1.728, 'Quận Gò Vấp':1.68,'Quận Bình Thạch':1.312,'Quận Bình Tân':2.488,'Quận Tân Phú':2.672,'Quận Thủ Đức':0.736} };
 let shipTimeMatrix={ 'Quận 9': { 'Quận 9': 1, 'Quận 3': 2 }, 'Quận 3': { 'Quận 9': 2, 'Quận 3': 1 } };
 let autionFeeMatrix = [[0, 421.50, 843, 2107.49,4214.97,21074.85,99999999999999], [1.26, 2.11, 4.21,6.32,8.43,12.64]];
 let defaultAuctionFee=3;
 const createTemporyDebit=async ({
     productId,
-    auctionMoney    
+    auctionMoney
 }, id) => {
     const receiver=await userService.getUserById(id);
     let auctionFee=caculateAuctionFee(auctionMoney);
     let shipFee=caculateShippingFee('Quận 9',receiver.district);
-    console.log('Create WithDrawRequest with: '
+    console.log('Create TemporyDebit with: '
     +'\nauctionFee: '+auctionFee
-    +'\nshipFee'+shipFee);
+    +'\nshipFee: '+shipFee);
+    console.log('Total fee: '+auctionMoney+shipFee+auctionFee);
     const newWithDrawRequest = new TemporaryDebit({
         product: productId,
         auctionMoney: auctionMoney,
@@ -21,16 +23,87 @@ const createTemporyDebit=async ({
         auctionFee: auctionFee,
         owner: id,
     });
-    await temportDebitAccount(id,auctionMoney+shipFee+auctionFee);
-    return newWithDrawRequest.save();
+    if(receiver.availableBalance>auctionMoney+shipFee+auctionFee){
+        await temportDebitAccount(receiver._id,auctionMoney+shipFee+auctionFee);
+        return newWithDrawRequest.save();
+    }else{
+        return 'NOT_ENOUGH_AVAILABLE_MONEY';
+    }
 };
+
+const updateTemporyDebit=async ({
+    productId,
+    auctionMoney
+}, id) => {
+    const receiver=await userService.getUserById(id);
+    let auctionFee=caculateAuctionFee(auctionMoney);
+    let shipFee=caculateShippingFee('Quận 9',receiver.district);
+    console.log('Update TemporaryDebit with: '
+    +'\nauctionFee: '+auctionFee
+    +'\nshipFee: '+shipFee);
+    console.log('Total fee: '+auctionMoney+shipFee+auctionFee);
+   
+    if(await calculateNewFeeAvailable(id,productId, auctionMoney+shipFee+auctionFee)){
+        await deleteTemporaryDebitAndRestoreMoney(id, productId);
+        const newWithDrawRequest = new TemporaryDebit({
+            product: productId,
+            auctionMoney: auctionMoney,
+            shipFee: shipFee,
+            auctionFee: auctionFee,
+            owner: id,
+        });
+        await temportDebitAccount(receiver._id,auctionMoney+shipFee+auctionFee);
+        return newWithDrawRequest.save();
+    }else{
+        return 'NOT_ENOUGH_AVAILABLE_MONEY';
+    }
+};
+
+async function deleteTemporaryDebitAndRestoreMoney(accountId, productId){
+    const oldTemporyDebit= await getTemporyDebitByAccountAndProduct(accountId, productId);
+    const oldPrice= oldTemporyDebit.auctionMoney+oldTemporyDebit.shipFee+oldTemporyDebit.auctionFee;
+    await oldTemporyDebit.remove();
+    await restoreDebitAccount(accountId,oldPrice);
+}
+
+async function calculateNewFeeAvailable (accountId, productId, newAuctionMoney){
+    const receiver=await userService.getUserById(accountId);
+    const oldTemporyDebit=await getTemporyDebitByAccountAndProduct(accountId,productId);
+    const oldBid=oldTemporyDebit!=null?oldTemporyDebit.auctionMoney+oldTemporyDebit.shipFee+oldTemporyDebit.auctionFee:0;
+    if(receiver.availableBalance+oldBid>newAuctionMoney){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+async function getTemporyDebitByAccountAndProduct(accountId, productId){
+    const temporyDebit=await TemporaryDebit.findOne({owner:accountId,product:productId});
+
+    console.log('Old Temporry Debit:'+ temporyDebit);
+    return temporyDebit;
+}
+
+
 
 async function temportDebitAccount(accountId, debitAmount){
     const updatedUser=await User.findByIdAndUpdate(
         accountId,
         {
             $inc: {availableBalance: (-1)*debitAmount}  // current value +amount
-        }
+        },
+        {new: true}
+    )
+    return updatedUser;
+}
+
+async function restoreDebitAccount(accountId, restoreAmount){
+    const updatedUser=await User.findByIdAndUpdate(
+        accountId,
+        {
+            $inc: {availableBalance: restoreAmount}  // current value +amount
+        },
+        {new: true}
     )
     return updatedUser;
 }
@@ -43,7 +116,7 @@ function caculateShippingFee(ownerDistrict,receiverDistrict){
         shipFee=shipFeeMatrix[ownerDistrict][receiverDistrict];
     }catch(ex){
         //out of control shipping
-        shipFee=4.22;
+        shipFee=5;
     }finally{
         return shipFee;
     }
@@ -64,4 +137,6 @@ function caculateAuctionFee(auctionMoney){
 
 module.exports = {
     createTemporyDebit,
+    updateTemporyDebit,
+    getTemporyDebitByAccountAndProduct
 };
