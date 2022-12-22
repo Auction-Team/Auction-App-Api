@@ -7,19 +7,24 @@ const Cart = require('../models/cart_model');
 const mongoose = require('mongoose');
 
 const getCartByUser = catchAsync(async (req, res, next) => {
-    const userId = mongoose.Types.ObjectId(req.user.id);
     const listCart = await Cart.aggregate()
         .lookup({
             from: 'products',
             localField: 'products',
             foreignField: '_id',
-            as: 'productList',
+            as: 'product',
         })
+        .unwind("$product")
         .project({
-            user: 1,
-            productList: "$productList"
+            product: '$product',
         })
-    ;
+        .then((result) => {
+            return result.map(cart => {
+                cart.product.mainImage = process.env.S3_LOCATION + cart.product.mainImage
+                return cart;
+            });
+        })
+
     return res.status(httpStatus.OK).json({
         success: true,
         listCart,

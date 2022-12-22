@@ -50,9 +50,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // Create reset password url
-    const resetUrl = `${req.protocol}://${req.get(
-        'host',
-    )}/api/auth/password/reset/${resetToken}`;
+    const resetUrl = `http://localhost:8080/reset-password/${resetToken}`;
 
     const message = `Your password reset token is as follow:\n\n${resetUrl}\n\nIf you have not requested this email, then ignore it.`;
 
