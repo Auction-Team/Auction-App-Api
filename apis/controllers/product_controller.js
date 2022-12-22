@@ -122,6 +122,7 @@ const uploadProductImage = catchAsync(async (req, res, next) => {
     try {
         console.log("upload complete --> store data to database");
         const { productId,mainImageFlag,subImagesIndex } = req.query;
+        console.log('mainImageFlag: '+mainImageFlag);
         const product = await productService.getProductById(productId);
         if (!product)
         return next(
@@ -133,7 +134,7 @@ const uploadProductImage = catchAsync(async (req, res, next) => {
         
         console.log("found product");
 
-        if (mainImageFlag!=null && mainImageFlag === true)
+        if (mainImageFlag!=null && mainImageFlag == 'true')
         {
             console.log(product.mainImage);
             if(product.mainImage !== "product/default-image.png"){
@@ -166,7 +167,7 @@ const uploadProductImage = catchAsync(async (req, res, next) => {
         }
         
         console.log("store new data");
-        if(mainImageFlag!=null&& mainImageFlag ===true){
+        if(mainImageFlag!=null&& mainImageFlag =='true'){
             product.mainImage = req.file.key;
         }else{
             if(subImagesIndex!=null && subImagesIndex !== -1){
