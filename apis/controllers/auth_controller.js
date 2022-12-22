@@ -133,7 +133,7 @@ const profile = catchAsync(async (req, res, next) => {
 
     if (!user)
         return next(new CustomError(httpStatus.NOT_FOUND, 'User not exists'));
-
+    user.avatar = process.env.S3_LOCATION + user.avatar
     return res.status(httpStatus.OK).json({
         success: true,
         user,
