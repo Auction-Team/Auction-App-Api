@@ -38,7 +38,16 @@ async function temportDebitAccount(accountId, debitAmount){
 function caculateShippingFee(ownerDistrict,receiverDistrict){
     // let key1 = 'Quận 9';
     // let key2 = 'Quận 3';
-    return shipFeeMatrix[ownerDistrict][receiverDistrict];
+    let shipFee;
+    try{
+        shipFee=shipFeeMatrix[ownerDistrict][receiverDistrict];
+    }catch(ex){
+        //out of control shipping
+        shipFee=4.22;
+    }finally{
+        return shipFee;
+    }
+     
 }
 function caculateAuctionFee(auctionMoney){
     const dimensions = [ autionFeeMatrix.length, autionFeeMatrix[0].length ];

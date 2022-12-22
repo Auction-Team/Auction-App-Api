@@ -7,7 +7,7 @@ const placePrice = catchAsync(async (req, res,next) => {
     try {
         const temporyDebit = await auctionPaymentService.createTemporyDebit({...req.body},req.user.id);
         const userInfo=await userService.getUserById(req.user.id);
-        console.log("Add new product finished")
+        console.log("Add new tempory debit")
         console.log(temporyDebit)
         return res.status(httpStatus.OK).send({temporyDebit: {
             ...temporyDebit._doc
