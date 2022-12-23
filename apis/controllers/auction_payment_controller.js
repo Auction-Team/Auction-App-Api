@@ -79,7 +79,7 @@ const doEndAuction = catchAsync(async (req, res,next) => {
         const product=await productService.getProductById(productId);
         let currentDateTime=new Date();
         if(product.endAuctionTime>=currentDateTime){
-            res.status(400).json({ success: false, message: 'The auction cannot be closed before the end of the auction' });
+           return res.status(400).json({ success: false, message: 'The auction cannot be closed before the end of the auction' });
         }
         const winner = await auctionPaymentService.deleteAllTemporyByProduct(productId);
         if(winner=='NO_USER_PARTICIPANT_TO_AUCTION'){
@@ -89,7 +89,7 @@ const doEndAuction = catchAsync(async (req, res,next) => {
         return res.status(httpStatus.OK).send({winner: true})
     } catch (error) {
         console.log(error);
-        res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: error.message });
     }
 })
 
