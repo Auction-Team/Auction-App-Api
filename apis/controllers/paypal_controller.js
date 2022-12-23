@@ -53,7 +53,10 @@ const createPayment = catchAsync(async (req, res, next) => {
             for (let i = 0; i < payment.links.length; i++) {
                 if (payment.links[i].rel === 'approval_url') {
                     //res.redirect(payment.links[i].href);
-                    return payment.links[i].href;
+                    //return payment.links[i].href;
+                    res.status(httpStatus.OK).send({link: 
+                        payment.links[i].href
+                    })
                 }
             }
 
@@ -192,7 +195,10 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
         for (let i = 0; i < data.links.length; i++) {
             if (data.links[i].rel === 'payer-action') {
                     //res.redirect(data.links[i].href);
-                    return datdata.links[i].hrefa;
+                    //return datdata.links[i].hrefa;
+                    res.status(httpStatus.OK).send({link: 
+                        data.links[i].href
+                    })
                 }
         }
     }else{
