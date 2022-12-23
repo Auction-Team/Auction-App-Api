@@ -8,6 +8,10 @@ const withDrawRequest = new mongoose.Schema({
         type:Number,
         require: true
     },
+    emailPaypal:{
+        type:String,
+        require:true
+    },
     user: {
         type: mongoose.Types.ObjectId, 
         ref: 'User',

@@ -108,6 +108,10 @@ const getAllTransaction=catchAsync(async (req, res, next) => {
         reconcileList
     })
 });
+
+const createWithdraw=catchAsync(async (req, res, next) => {
+
+})
 const withdrawMoney=catchAsync(async (req, res, next) => {
     // const accountId=req.user.id;
     const adminId=req.user.id;
@@ -117,9 +121,13 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
     }
     const {withdrawId}=req.body;
     const withdrawRequest=await withdrawService.getWithDrawRequestInfo(withdrawId);
+    if(withdrawRequest==null){
+        return res.status(400).json({ success: false, message: 'Request withdraw not found'});
+    }
     const accountId=withdrawRequest.user;
-    const account= await userService.getUserById(accountId);
-    const transactionalMoney = req.body.transactionalMoney;
+    const transactionalMoney=withdrawRequest.transactionalMoney;
+    const emailPaypal = withdrawRequest.emailPaypal;
+    const account=await userService.getUserById(accountId);
     console.log('email receive address:'+account.email);
     if(account==null){
         res.status(400).json({ success: false, message: 'Account is not found' });
@@ -147,7 +155,7 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
               value: transactionalMoney.toString(),
             },
             payee: {
-                email_address: account.email
+                email_address: emailPaypal
             }
           },
         ],

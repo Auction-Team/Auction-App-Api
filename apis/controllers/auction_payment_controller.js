@@ -10,17 +10,21 @@ const placeBid = catchAsync(async (req, res,next) => {
         let currentDateTime=new Date();
         console.log('product: '+product);
         if(product==null){
-            res.status(400).json({ success: false, message: 'Product not exists' });
+            return res.status(400).json({ success: false, message: 'Product not exists' });
+        }
+        const oldTemporyDebit = await auctionPaymentService.getTemporyDebitByAccountAndProduct(req.user.id,productId);
+        if(oldTemporyDebit!=null){
+            return res.status(400).json({ success: false, message: 'BID01'});
         }
         if(product.startAuctionTime>=currentDateTime&&product.endAuctionTime <=currentDateTime){
-            res.status(400).json({ success: false, message: 'Can not bid on this item because it is not time for auction yet' });
+            return res.status(400).json({ success: false, message: 'Can not bid on this item because it is not time for auction yet' });
         }
         if(auctionMoney<product.startingPrice){
-            res.status(400).json({ success: false, message: 'This product cannot be auctioned for less than the starting price' });
+            return res.status(400).json({ success: false, message: 'This product cannot be auctioned for less than the starting price' });
         }
         const temporyDebit = await auctionPaymentService.createTemporyDebit({...req.body},req.user.id);
         if(temporyDebit=='NOT_ENOUGH_AVAILABLE_MONEY'){
-            res.status(400).json({ success: false, message: 'You don not have enough money for place place bid for product'});
+            return res.status(400).json({ success: false, message: 'You don not have enough money for place place bid for product'});
         }
         const userInfo=await userService.getUserById(req.user.id);
         console.log("Add new tempory debit")
@@ -34,7 +38,7 @@ const placeBid = catchAsync(async (req, res,next) => {
         })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: error.message });
     }
 })
 
@@ -45,17 +49,17 @@ const placeNewBid = catchAsync(async (req, res,next) => {
         const product=await productService.getProductById(productId);
         const currentDate=new Date();
         if(temporyDebit==null){
-            res.status(400).json({ success: false, message: 'Not found old bid!'});
+            return res.status(400).json({ success: false, message: 'Not found old bid!'});
         }
         if(product.startAuctionTime>=currentDate&&product.endAuctionTime <=currentDate){
-            res.status(400).json({ success: false, message: 'Can not bid on this item because it is not time for auction yet' });
+            return res.status(400).json({ success: false, message: 'Can not bid on this item because it is not time for auction yet' });
         }
         if(auctionMoney<product.startingPrice){
-            res.status(400).json({ success: false, message: 'This product cannot be auctioned for less than the starting price' });
+            return res.status(400).json({ success: false, message: 'This product cannot be auctioned for less than the starting price' });
         }
         const newTemporyDebit=await auctionPaymentService.updateTemporyDebit({...req.body},req.user.id);
         if(newTemporyDebit=='NOT_ENOUGH_AVAILABLE_MONEY'){
-            res.status(400).json({ success: false, message: 'You don not have enough money for place place bid for product'});
+            return res.status(400).json({ success: false, message: 'You don not have enough money for place place bid for product'});
         }
         const userInfo=await userService.getUserById(req.user.id);
         console.log("Add new tempory debit")
@@ -69,7 +73,7 @@ const placeNewBid = catchAsync(async (req, res,next) => {
         })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: error.message });
     }
 })
 
