@@ -52,7 +52,8 @@ const createPayment = catchAsync(async (req, res, next) => {
         } else {
             for (let i = 0; i < payment.links.length; i++) {
                 if (payment.links[i].rel === 'approval_url') {
-                    res.redirect(payment.links[i].href);
+                    //res.redirect(payment.links[i].href);
+                    return payment.links[i].href;
                 }
             }
 
@@ -190,7 +191,8 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
         await withdrawService.updateOrderForWithDraw(withdrawId,data.id);
         for (let i = 0; i < data.links.length; i++) {
             if (data.links[i].rel === 'payer-action') {
-                    res.redirect(data.links[i].href);
+                    //res.redirect(data.links[i].href);
+                    return datdata.links[i].hrefa;
                 }
         }
     }else{
