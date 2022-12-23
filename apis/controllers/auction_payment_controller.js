@@ -12,7 +12,7 @@ const placeBid = catchAsync(async (req, res,next) => {
         if(product==null){
             res.status(400).json({ success: false, message: 'Product not exists' });
         }
-        if(product.startAuctionTime>=currentDateTime){
+        if(product.startAuctionTime>=currentDateTime&&product.endAuctionTime <=currentDateTime){
             res.status(400).json({ success: false, message: 'Can not bid on this item because it is not time for auction yet' });
         }
         if(auctionMoney<product.startingPrice){
@@ -43,10 +43,13 @@ const placeNewBid = catchAsync(async (req, res,next) => {
         const {productId, auctionMoney}=req.body;
         const temporyDebit = await auctionPaymentService.getTemporyDebitByAccountAndProduct(req.user.id,productId);
         const product=await productService.getProductById(productId);
+        const currentDate=new Date();
         if(temporyDebit==null){
             res.status(400).json({ success: false, message: 'Not found old bid!'});
         }
-        
+        if(product.startAuctionTime>=currentDate&&product.endAuctionTime <=currentDate){
+            res.status(400).json({ success: false, message: 'Can not bid on this item because it is not time for auction yet' });
+        }
         if(auctionMoney<product.startingPrice){
             res.status(400).json({ success: false, message: 'This product cannot be auctioned for less than the starting price' });
         }
@@ -83,10 +86,7 @@ const doEndAuction = catchAsync(async (req, res,next) => {
             res.status(400).json({ success: false, message: 'No user participant to auction'});
         }
         console.log(winner)
-        return res.status(httpStatus.OK).send({winner: {
-            ...winner._doc
-        }
-    })
+        return res.status(httpStatus.OK).send({winner: true})
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, message: error.message });

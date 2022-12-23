@@ -3,6 +3,7 @@ const {userService, invoiceService, productService, reconcileService}=require('.
 const User = require('../models/user_model');
 const Product = require('../models/product_model');
 const { randomUUID } = require('crypto'); 
+var ObjectId = require('mongodb').ObjectID;
 let shipFeeMatrix = { 'Quận 9': { 'Quận 1': 1.632, 'Quận 2': 1.376, 'Quận 3': 1.68, 'Quận 4':1.808, 'Quận 5':2.032,'Quận 6':2.456,'Quận 7':2.016,'Quận 8':2.808,'Quận 9':0,'Quận 10':1.96,'Quận 11':2.048,'Quận 12':1.856,'Quận Tân Bình':1.896,'Quận Phú Nhuận': 1.728, 'Quận Gò Vấp':1.68,'Quận Bình Thạch':1.312,'Quận Bình Tân':2.488,'Quận Tân Phú':2.672,'Quận Thủ Đức':0.736} };
 let shipTimeMatrix={ 'Quận 9': { 'Quận 9': 1, 'Quận 3': 2 }, 'Quận 3': { 'Quận 9': 2, 'Quận 3': 1 } };
 let autionFeeMatrix = [[0, 421.50, 843, 2107.49,4214.97,21074.85,99999999999999], [1.26, 2.11, 4.21,6.32,8.43,12.64]];
@@ -56,8 +57,9 @@ const updateTemporyDebit=async ({
             auctionFee: auctionFee,
             owner: id,
         });
-        await temportDebitAccount(receiver._id,auctionMoney+shipFee+auctionFee);
-        return newWithDrawRequest.save();
+        await temportDebitAccount(id,auctionMoney+shipFee+auctionFee);
+        const result=await newWithDrawRequest.save();
+        return result;
     }else{
         return 'NOT_ENOUGH_AVAILABLE_MONEY';
     }
@@ -75,48 +77,64 @@ const deleteAllTemporyByProduct=async (productId) => {
     console.log(secondWinner);
     const finalAuctionMoney=secondWinner.length==0?winnerDebit[0].auctionMoney:secondWinner[0].auctionMoney;
     const finalPriceForWinner=finalAuctionMoney+winnerDebit[0].auctionFee+winnerDebit[0].shipFee;
-    transferProductForWinner(productId,winnerDebit[0]._id,winnerDebit[0].auctionMoney,finalAuctionMoney,finalPriceForWinner);
+    await transferProductForWinner(productId,winnerDebit[0]._id.toString(),winnerDebit[0].auctionMoney,finalAuctionMoney,finalPriceForWinner);
     const temporyDebitList=await getAllTemporyDebitByProduct(productId);
-    temporyDebitList.forEach((item) => {
-        deleteTemporaryDebitAndRestoreMoney(item);
+    const temp = await temporyDebitList.forEach(async (item) => {
+        await deleteTemporaryDebitAndRestoreMoney(item);
     });
-    return winnerDebit[0];
+    return temp;
 };
 
 
-async function transferProductForWinner(productId, winnerId,initialWinnerPrice, finalAuctionMoney,finalPriceForWinner){
+const transferProductForWinner=async (productId, winnerId,initialWinnerPrice, finalAuctionMoney,finalPriceForWinner)=>{
     const product=await productService.getProductById(productId);
-    await chargeWinner(winnerId,product,initialWinnerPrice,finalPriceForWinner);
-    await changeOwnerOfProductToWinner(product,winnerId,finalAuctionMoney);
-    await invoiceService.createInvoice(productId,winnerId,finalPriceForWinner,1);
+    const result = await Promise.all([chargeWinner(winnerId,product,initialWinnerPrice,finalPriceForWinner),
+    changeOwnerOfProductToWinner(product,winnerId,finalAuctionMoney),
+    invoiceService.createInvoice(productId,winnerId,finalPriceForWinner,1)]);
+    return result;
 }
 
 async function chargeWinner(winnerId,product,initialWinnerPrice,finalPriceForWinner){
-    const updatedUser=await User.findByIdAndUpdate(
+    console.log(winnerId);
+    const user=await userService.getUserById(winnerId);
+    console.log('user winner info: '+user);
+    const result=await updateWinner(winnerId,initialWinnerPrice,finalPriceForWinner);
+    var rid=randomUUID()+new Date().toISOString().replace(/:/g, '-');
+    await reconcileService.createReconcile(rid,'Paying the auction for the product '+product.auctionName,finalPriceForWinner,'USD','OUT',winnerId);
+    return result;
+}
+
+async function updateWinner(winnerId,initialWinnerPrice,finalPriceForWinner){
+    await User.findByIdAndUpdate(
         winnerId,
         {
             $inc: {accountBalance: (-1)*finalPriceForWinner},  // current value +amount
-            $inc: {availableBalance: initialWinnerPrice-finalPriceForWinner}  // current value +amount
+            $inc: {availableBalance: initialWinnerPrice-finalPriceForWinner},  // current value +amount
         },
         {
             new:true
         }
     )
-    var rid=randomUUID()+new Date().toISOString().replace(/:/g, '-');
-    await reconcileService.createReconcile(rid,'Paying the auction for the product '+product.auctionName,finalPriceForWinner,'USD','OUT',winnerId);
-    return updatedUser;
-}
+} 
 
 async function changeOwnerOfProductToWinner(product, winnerId, finalPriceForWinner){
     const action='Receive money from the auction floor of product '+product.auctionName;
     const ownerMoney=await calculateOwnerMoney(finalPriceForWinner);
     console.log('Owner money: '+ownerMoney);
     
-    const updatedOwner=await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
         product.owner,
         {
-            $inc: {accountBalance: ownerMoney},  // current value +amount
-            $inc: {availableBalance: ownerMoney}  // current value +amount
+            $inc: {accountBalance: ownerMoney+0.00}  // current value +amount
+        },
+        {
+            new:true
+        }
+    )
+    const updatedOwner= await User.findByIdAndUpdate(
+        product.owner,
+        {
+            $inc: {availableBalance: ownerMoney+0.00}  // current value +amount
         },
         {
             new:true
@@ -125,7 +143,7 @@ async function changeOwnerOfProductToWinner(product, winnerId, finalPriceForWinn
     console.log('new owner: '+updatedOwner);
     var rid=randomUUID()+new Date().toISOString().replace(/:/g, '-');
     await reconcileService.createReconcile(rid,action,ownerMoney,'USD','IN',product.owner);
-    const updatedProduct=await Product.findByIdAndUpdate(
+    await Product.findByIdAndUpdate(
         product._id,
         {
             owner:winnerId
@@ -134,8 +152,6 @@ async function changeOwnerOfProductToWinner(product, winnerId, finalPriceForWinn
             new:true
         }
     )
-
-    return updatedProduct;
 }
 
 async function calculateOwnerMoney(finalPriceForWinner){
@@ -170,7 +186,8 @@ async function deleteTemporaryDebitAndRestoreMoney(accountId, productId){
     const oldTemporyDebit= await getTemporyDebitByAccountAndProduct(accountId, productId);
     const oldPrice= oldTemporyDebit.auctionMoney+oldTemporyDebit.shipFee+oldTemporyDebit.auctionFee;
     await oldTemporyDebit.remove();
-    await restoreDebitAccount(accountId,oldPrice);
+    const result = await restoreDebitAccount(accountId,oldPrice);
+    return result;
 }
 
 async function calculateNewFeeAvailable (accountId, productId, newAuctionMoney){

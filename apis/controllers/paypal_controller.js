@@ -25,8 +25,8 @@ const createPayment = catchAsync(async (req, res, next) => {
             'payment_method': 'paypal',
         },
         'redirect_urls': {
-            'return_url': process.env.FE_DOMAIN+'/dashboard/reconcile',
-            'cancel_url': process.env.FE_DOMAIN+'/api/paypal/inward/cancel',
+            'return_url': process.env.FE_DOMAIN+'/dashboard/reconcile/success',
+            'cancel_url': process.env.FE_DOMAIN+'/dashboard/reconcile/cancel',
         },
         'transactions': [{
             'item_list': {
@@ -137,8 +137,8 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
         intent: "CAPTURE",
         application_context: {
             "user_action":"PAY_NOW",
-            "return_url": process.env.FE_DOMAIN+"/api/paypal/outward/success?withdrawId="+withdrawId,
-            "cancel_url": process.env.FE_DOMAIN+"/api/paypal/outward/cancel"
+            "return_url": process.env.FE_DOMAIN+"/dashboard/reconcile/withdraw-success?withdrawId="+withdrawId,
+            "cancel_url": process.env.FE_DOMAIN+"/dashboard/reconcile/withdraw-cancel"
         },
         purchase_units: [
           {
