@@ -110,7 +110,20 @@ const getAllTransaction=catchAsync(async (req, res, next) => {
 });
 
 const createWithdraw=catchAsync(async (req, res, next) => {
-
+    try {
+        const newWithdraw = await withdrawService.createWithDrawRequest({...req.body},req.user.id);
+        if(newWithdraw=='DONT_HAVE_ENOUGH_MONEY'){
+            return res.status(400).json({ success: false, message: 'You do not have enough money' });
+        }
+        console.log("Add new withdraw request finished")
+        console.log(newWithdraw)
+        return res.status(httpStatus.OK).send({withdraw: {
+            ...newWithdraw._doc
+        }})
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
 })
 const withdrawMoney=catchAsync(async (req, res, next) => {
     // const accountId=req.user.id;
@@ -253,5 +266,6 @@ module.exports = {
     cancelPayment,
     getAllTransaction,
     withdrawMoney,
-    capturePaymentOrder
+    capturePaymentOrder,
+    createWithdraw
 };

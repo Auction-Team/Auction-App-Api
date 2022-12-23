@@ -15,6 +15,12 @@ router.post(
 );
 
 router.post(
+    '/withdraw/create',
+    passport.authenticate('jwt', { session: false }),
+    paypal_controller.createWithdraw,
+);
+
+router.post(
     '/withdraw',
     passport.authenticate('jwt', { session: false }),
     paypal_controller.withdrawMoney,
