@@ -17,6 +17,11 @@ const temporaryDebitModel = new mongoose.Schema({
         type:Number,
         require: true
     },
+    createdDate:{
+        type: Date,
+        require: false,
+        default: new Date()
+    },
     owner: {
         type: mongoose.Types.ObjectId, 
         ref: 'User',

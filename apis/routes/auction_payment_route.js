@@ -11,7 +11,17 @@ const { auctionPaymentController } = require('../controllers');
 router.post(
     '/place',
     passport.authenticate('jwt', { session: false }),
-    auctionPaymentController.placePrice,
+    auctionPaymentController.placeBid,
+);
+router.put(
+    '/change',
+    passport.authenticate('jwt', { session: false }),
+    auctionPaymentController.placeNewBid,
+);
+
+router.put(
+    '/end-auction',
+    auctionPaymentController.doEndAuction,
 );
 
 module.exports = router;

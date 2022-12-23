@@ -18,7 +18,7 @@ paypal.configure({
 
 const createPayment = catchAsync(async (req, res, next) => {
     let transactionalMoney=req.body.transactionalMoney;
-
+    console.log('Money: '+transactionalMoney);
     const create_payment_json = {
         'intent': 'sale',
         'payer': {

@@ -185,7 +185,11 @@ const getAllCategory = async () => {
     return Category.find();
 };
 const getProductById = async (id) => {
-    const product = Product.findById(id);
+    const product =await Product.findById(id);
+    console.log('detail product: '+product);
+    if(product==null){
+        return null;
+    }
     console.log(product.deletedFlag);
     if (product.deletedFlag != null && product.deletedFlag !== false) {
         return null;
