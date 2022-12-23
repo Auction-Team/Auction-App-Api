@@ -205,11 +205,26 @@ const withdrawMoney = catchAsync(async (req, res, next) => {
     const accessToken = await generateAccessToken();
     const url = `${base}/v2/checkout/orders`;
     const response = await fetch(url, {
+<<<<<<< HEAD
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
             'PayPal-Request-Id': randomUUID(),
+=======
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        "PayPal-Request-Id" : randomUUID()
+      },
+      body: JSON.stringify({
+        intent: "CAPTURE",
+        application_context: {
+            "user_action":"PAY_NOW",
+            "return_url": process.env.FE_ADMIN_DOMAIN+"/dashboard/reconcile/success?withdrawId="+withdrawId,
+            "cancel_url": process.env.FE_ADMIN_DOMAIN+"/dashboard/reconcile/cancel"
+>>>>>>> 3fca139b7136080c4bd86630ab3b080854953b9d
         },
         body: JSON.stringify({
             intent: 'CAPTURE',
