@@ -25,7 +25,7 @@ const createPayment = catchAsync(async (req, res, next) => {
             'payment_method': 'paypal',
         },
         'redirect_urls': {
-            'return_url': process.env.FE_DOMAIN+'/api/paypal/inward/success',
+            'return_url': process.env.FE_DOMAIN+'/dashboard/reconcile',
             'cancel_url': process.env.FE_DOMAIN+'/api/paypal/inward/cancel',
         },
         'transactions': [{
