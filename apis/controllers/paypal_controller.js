@@ -25,8 +25,8 @@ const createPayment = catchAsync(async (req, res, next) => {
             'payment_method': 'paypal',
         },
         'redirect_urls': {
-            'return_url': process.env.FE_DOMAIN+'/api/paypal/inward/success',
-            'cancel_url': process.env.FE_DOMAIN+'/api/paypal/inward/cancel',
+            'return_url': process.env.FE_DOMAIN+'/dashboard/reconcile/success',
+            'cancel_url': process.env.FE_DOMAIN+'/dashboard/reconcile/cancel',
         },
         'transactions': [{
             'item_list': {
@@ -52,7 +52,11 @@ const createPayment = catchAsync(async (req, res, next) => {
         } else {
             for (let i = 0; i < payment.links.length; i++) {
                 if (payment.links[i].rel === 'approval_url') {
-                    res.redirect(payment.links[i].href);
+                    //res.redirect(payment.links[i].href);
+                    //return payment.links[i].href;
+                    res.status(httpStatus.OK).send({link: 
+                        payment.links[i].href
+                    })
                 }
             }
 
@@ -133,8 +137,8 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
         intent: "CAPTURE",
         application_context: {
             "user_action":"PAY_NOW",
-            "return_url": process.env.FE_DOMAIN+"/api/paypal/outward/success?withdrawId="+withdrawId,
-            "cancel_url": process.env.FE_DOMAIN+"/api/paypal/outward/cancel"
+            "return_url": process.env.FE_DOMAIN+"/dashboard/reconcile/withdraw-success?withdrawId="+withdrawId,
+            "cancel_url": process.env.FE_DOMAIN+"/dashboard/reconcile/withdraw-cancel"
         },
         purchase_units: [
           {
@@ -190,7 +194,11 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
         await withdrawService.updateOrderForWithDraw(withdrawId,data.id);
         for (let i = 0; i < data.links.length; i++) {
             if (data.links[i].rel === 'payer-action') {
-                    res.redirect(data.links[i].href);
+                    //res.redirect(data.links[i].href);
+                    //return datdata.links[i].hrefa;
+                    res.status(httpStatus.OK).send({link: 
+                        data.links[i].href
+                    })
                 }
         }
     }else{

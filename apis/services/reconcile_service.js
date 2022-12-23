@@ -17,11 +17,23 @@ const createReconcile = async (rid, action, transactionalMoney, currencyUnit, ty
 }
 
 const increaseMoney = async (accountId, amount) => {
-    const updatedUser=await User.findByIdAndUpdate(
+
+    await User.findByIdAndUpdate(
         accountId,
         {
             $inc: {accountBalance: amount},  // current value +amount
+        },
+        {
+            new:true
+        }
+    )
+    const updatedUser= await User.findByIdAndUpdate(
+        accountId,
+        {
             $inc: {availableBalance: amount}  // current value +amount
+        },
+        {
+            new:true
         }
     )
     return updatedUser;
