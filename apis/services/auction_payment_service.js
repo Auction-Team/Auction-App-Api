@@ -77,12 +77,14 @@ const deleteAllTemporyByProduct=async (productId) => {
     console.log(secondWinner);
     const finalAuctionMoney=secondWinner.length==0?winnerDebit[0].auctionMoney:secondWinner[0].auctionMoney;
     const finalPriceForWinner=finalAuctionMoney+winnerDebit[0].auctionFee+winnerDebit[0].shipFee;
-    await transferProductForWinner(productId,winnerDebit[0]._id.toString(),winnerDebit[0].auctionMoney,finalAuctionMoney,finalPriceForWinner);
+    await transferProductForWinner(productId,winnerDebit[0].owner.toString(),winnerDebit[0].auctionMoney,finalAuctionMoney,finalPriceForWinner);
     const temporyDebitList=await getAllTemporyDebitByProduct(productId);
-    const temp = await temporyDebitList.forEach(async (item) => {
-        await deleteTemporaryDebitAndRestoreMoney(item);
-    });
-    return temp;
+    if(temporyDebitList!=null){
+        temporyDebitList.forEach(async (item) => {
+            await deleteTemporaryDebitAndRestoreMoney(item);
+        });
+    }
+    return winnerDebit[0];
 };
 
 
@@ -109,12 +111,22 @@ async function updateWinner(winnerId,initialWinnerPrice,finalPriceForWinner){
         winnerId,
         {
             $inc: {accountBalance: (-1)*finalPriceForWinner},  // current value +amount
-            $inc: {availableBalance: initialWinnerPrice-finalPriceForWinner},  // current value +amount
+            
         },
         {
             new:true
         }
     )
+    const result2=await User.findByIdAndUpdate(
+        winnerId,
+        {
+            $inc: {availableBalance: initialWinnerPrice-finalPriceForWinner},  // current value +amount 
+        },
+        {
+            new:true
+        }
+    )
+    return result2;
 } 
 
 async function changeOwnerOfProductToWinner(product, winnerId, finalPriceForWinner){
