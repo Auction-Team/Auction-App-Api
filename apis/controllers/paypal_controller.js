@@ -172,8 +172,8 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
         intent: "CAPTURE",
         application_context: {
             "user_action":"PAY_NOW",
-            "return_url": process.env.FE_DOMAIN+"/dashboard/reconcile/success?withdrawId="+withdrawId,
-            "cancel_url": process.env.FE_DOMAIN+"/dashboard/reconcile/cancel"
+            "return_url": process.env.FE_ADMIN_DOMAIN+"/dashboard/reconcile/success?withdrawId="+withdrawId,
+            "cancel_url": process.env.FE_ADMIN_DOMAIN+"/dashboard/reconcile/cancel"
         },
         purchase_units: [
           {
