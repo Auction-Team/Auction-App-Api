@@ -73,12 +73,20 @@ const placeNewBid = catchAsync(async (req, res,next) => {
 const doEndAuction = catchAsync(async (req, res,next) => {
     try {
         const {productId}=req.body;
-        const temporyDebit = await auctionPaymentService.createTemporyDebit({...req.body},req.user.id);
-        const userInfo=await userService.getUserById(req.user.id);
-        console.log("Add new tempory debit")
-        console.log(temporyDebit)
-        return res.status(httpStatus.OK).send({result:true
-        })
+        const product=await productService.getProductById(productId);
+        let currentDateTime=new Date();
+        if(product.endAuctionTime>=currentDateTime){
+            res.status(400).json({ success: false, message: 'The auction cannot be closed before the end of the auction' });
+        }
+        const winner = await auctionPaymentService.deleteAllTemporyByProduct(productId);
+        if(winner=='NO_USER_PARTICIPANT_TO_AUCTION'){
+            res.status(400).json({ success: false, message: 'No user participant to auction'});
+        }
+        console.log(winner)
+        return res.status(httpStatus.OK).send({winner: {
+            ...winner._doc
+        }
+    })
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, message: error.message });

@@ -19,4 +19,9 @@ router.put(
     auctionPaymentController.placeNewBid,
 );
 
+router.put(
+    '/end-auction',
+    auctionPaymentController.doEndAuction,
+);
+
 module.exports = router;
