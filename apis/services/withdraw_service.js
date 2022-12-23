@@ -12,16 +12,40 @@ const createWithDrawRequest=async ({transactionalMoney,emailPaypal}, id) => {
     const newWithDrawRequest = new WithDrawRequest({
         transactionalMoney: transactionalMoney,
         emailPaypal:emailPaypal,
-        owner: id,
+        user: id,
     });
     return newWithDrawRequest.save();
 };
+
+const deleteWithDrawRequest=async (requestId) => {
+    const request=await getWithDrawRequestInfo(requestId);
+    const result =await request.remove();
+    return result;
+};
+
+const getListWithDrawRequest=async()=>{
+    const withDrawRequestList=await WithDrawRequest.find();
+    return withDrawRequestList;
+}
 
 async function temporyDebitAccount(accountId, transactionalMoney){
     const result=await User.findByIdAndUpdate(
         accountId,
         {
             $inc: {availableBalance: (-1)*transactionalMoney},  // current value +amount 
+        },
+        {
+            new:true
+        }
+    )
+    return result;
+}
+
+const realDebitAccount=async(accountId, transactionalMoney)=>{
+    const result=await User.findByIdAndUpdate(
+        accountId,
+        {
+            $inc: {accountBalance: (-1)*transactionalMoney},  // current value +amount 
         },
         {
             new:true
@@ -52,5 +76,8 @@ module.exports = {
     getAllWithDraw,
     updateOrderForWithDraw,
     createWithDrawRequest,
-    getWithDrawRequestInfo
+    getWithDrawRequestInfo,
+    realDebitAccount,
+    deleteWithDrawRequest,
+    getListWithDrawRequest
 };

@@ -26,7 +26,7 @@ router.post(
     paypal_controller.withdrawMoney,
 );
 
-router.get(
+router.post(
     '/capture-order',
     passport.authenticate('jwt', { session: false }),
     paypal_controller.capturePaymentOrder,
@@ -48,6 +48,12 @@ router.get(
     '/all-transaction',
     passport.authenticate('jwt', { session: false }),
     paypal_controller.getAllTransaction
+)
+
+router.get(
+    '/withdraw/all-request',
+    passport.authenticate('jwt', { session: false }),
+    paypal_controller.getAllWithDrawRequest
 )
 
 module.exports = router;

@@ -6,6 +6,7 @@ const { reconcileService,userService, withdrawService } = require('../services')
 const { randomUUID } = require('crypto'); 
 
 const depositTitle='Deposit money into the system';
+const withDrawTitle='Withdraw money from the system';
 const inwardType='IN';
 const outwardType='OUT';
 const base = "https://api-m.sandbox.paypal.com";
@@ -109,6 +110,19 @@ const getAllTransaction=catchAsync(async (req, res, next) => {
     })
 });
 
+const getAllWithDrawRequest=catchAsync(async (req, res, next) => {
+    const adminId=req.user.id;
+    const adminAccount= await userService.getUserById(adminId);
+    if(adminAccount==null ||(adminAccount!=null&& adminAccount.role!='admin')){
+        return res.status(403);
+    }
+    const requestList=await withdrawService.getAllWithDraw();
+    return res.status(httpStatus.OK).json({
+        success: true,
+        requestList
+    })
+});
+
 const createWithdraw=catchAsync(async (req, res, next) => {
     try {
         const newWithdraw = await withdrawService.createWithDrawRequest({...req.body},req.user.id);
@@ -130,7 +144,7 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
     const adminId=req.user.id;
     const adminAccount= await userService.getUserById(adminId);
     if(adminAccount==null ||(adminAccount!=null&& adminAccount.role!='admin')){
-        res.status(403);
+        return res.status(403);
     }
     const {withdrawId}=req.body;
     const withdrawRequest=await withdrawService.getWithDrawRequestInfo(withdrawId);
@@ -158,8 +172,8 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
         intent: "CAPTURE",
         application_context: {
             "user_action":"PAY_NOW",
-            "return_url": process.env.FE_DOMAIN+"/dashboard/reconcile/withdraw-success?withdrawId="+withdrawId,
-            "cancel_url": process.env.FE_DOMAIN+"/dashboard/reconcile/withdraw-cancel"
+            "return_url": process.env.FE_DOMAIN+"/dashboard/reconcile/success?withdrawId="+withdrawId,
+            "cancel_url": process.env.FE_DOMAIN+"/dashboard/reconcile/cancel"
         },
         purchase_units: [
           {
@@ -229,7 +243,15 @@ const withdrawMoney=catchAsync(async (req, res, next) => {
   
 const capturePaymentOrder=catchAsync(async (req, res, next) => {
     const { withdrawId } = req.body;
+    const adminId=req.user.id;
     const withdrawRequest=await withdrawService.getWithDrawRequestInfo(withdrawId);
+    const adminAccount= await userService.getUserById(adminId);
+    if(adminAccount==null ||(adminAccount!=null&& adminAccount.role!='admin')){
+        return res.status(403);
+    }
+    if(withdrawRequest==null){
+        return res.status(400).json({ success: false, message: 'Request withdraw not found'});
+    }
     const orderId=withdrawRequest.orderId;
     const accessToken = await generateAccessToken();
     console.log('Order id: '+orderId +'\naccessToken:'+accessToken);
@@ -244,7 +266,22 @@ const capturePaymentOrder=catchAsync(async (req, res, next) => {
     const data = await response.json();
     //TODO: if success - minus account balance and create reconcile
     console.log(data);
-    return data;
+    //return data;
+    if(data==null){
+        return res.status(500).json({ success: false, message: 'Error when deposit money'});
+    }else{
+        if(data.status=='COMPLETED'){
+            await withdrawService.realDebitAccount(withdrawRequest.user,withdrawRequest.transactionalMoney);
+            await withdrawService.deleteWithDrawRequest(withdrawId);
+            var rid=randomUUID()+new Date().toISOString().replace(/:/g, '-');
+            await reconcileService.createReconcile(rid,withDrawTitle,withdrawRequest.transactionalMoney,'USD',outwardType,withdrawRequest.user);
+            
+            return res.status(httpStatus.OK).send({success: true});
+        }else{
+            return res.status(httpStatus.OK).send({success: false});
+        }
+        
+    }
   })
   
   async function generateAccessToken() {
@@ -267,5 +304,6 @@ module.exports = {
     getAllTransaction,
     withdrawMoney,
     capturePaymentOrder,
-    createWithdraw
+    createWithdraw,
+    getAllWithDrawRequest
 };
